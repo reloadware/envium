@@ -1,0 +1,15 @@
+[tool.poetry]
+name = "envo-client"
+version = "0.1.0"
+description = ""
+authors = ["Damian Krystkiewicz <damian.krystkiewicz@gmail.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.6"
+
+[tool.poetry.dev-dependencies]
+pytest = "^6.2.4"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

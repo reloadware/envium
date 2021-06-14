@@ -46,17 +46,18 @@ class EnvoClientLocalEnv(UserEnv):  # type: ignore
         parents: List[str] = ["env_comm.py"]
         plugins: List[Plugin] = []
         sources: List[Source] = []
-        name: str = "envo-client"
+        name: str = "envium"
         version: str = "0.1.0"
         watch_files: List[str] = []
         ignore_files: List[str] = []
-        verbose_run: bool = False
+        verbose_run: bool = True
 
     # Declare your variables here
 
     def __init__(self) -> None:
         # Define your variables here
         ...
+
 
     # Define your commands, hooks and properties here
 

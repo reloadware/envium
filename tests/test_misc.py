@@ -5,6 +5,7 @@ from typing import Optional
 
 from tests import facade, utils
 from tests.facade import var, Environ, VarGroup
+from pytest import raises
 
 
 class TestMisc:
@@ -191,6 +192,18 @@ class TestComputed:
         assert env.test_var == "computedcomputed"
         assert env.get_env_vars() == {"ENV_TESTVAR": "computedcomputed"}
 
+    def test_error(self):
+        class Env(Environ):
+            def fget(self) -> float:
+                if self.cakes_n._value is None:
+                    self.cakes_n._value = 2
+                self.cakes_n._value -= 1
+                return 1.0 / self.cakes_n._value
+            cakes_n: float = facade.computed_var(fget=fget)
+
+        env = Env(name="env")
+        utils.assert_errors(env.errors, [facade.ComputedVarError("env.cakes_n", ZeroDivisionError("float division by zero"))])
+
 
 class TestLoading:
     def test_basic(self, sandbox, env_sandbox):
@@ -230,7 +243,7 @@ class TestDumping:
             python = Python()
 
         env = Env(name="env")
-        env_path = Path(".env")
+        env_path = Path("envs/.env")
         env.dump(env_path)
 
         assert env_path.read_text() == dedent(
@@ -258,6 +271,21 @@ class TestValidation:
 
         env = Env(name="env")
         utils.assert_errors(env.errors, [facade.NoTypeError("env.test_var")])
+
+    def test_wrong_type(self):
+        class Env(Environ):
+            test_var: int = facade.var(default="Cake")
+
+        env = Env(name="env")
+        utils.assert_errors(env.errors, [facade.WrongTypeError("env.test_var", int, str)])
+
+    def test_raises_validation_error(self):
+        class Env(Environ):
+            test_var: int = facade.var(default="Cake")
+
+        env = Env(name="env")
+        with raises(facade.ValidationErrors):
+            env.validate()
 
     def test_redefined_var(self):
         class Env(Environ):

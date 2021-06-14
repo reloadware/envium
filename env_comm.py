@@ -35,7 +35,7 @@ from envo import (  # noqa: F401
 
 # Declare your command namespaces here
 # like this:
-# my_namespace = Namespace("my_namespace")
+pr = Namespace("pr")
 
 
 class EnvoClientCommEnv(UserEnv):  # type: ignore
@@ -44,19 +44,32 @@ class EnvoClientCommEnv(UserEnv):  # type: ignore
         stage: str = "comm"
         emoji: str = "👌"
         parents: List[str] = []
-        plugins: List[Plugin] = []
+        plugins: List[Plugin] = [VirtualEnv]
         sources: List[Source] = []
-        name: str = "envo-client"
+        name: str = "envium"
         version: str = "0.1.0"
         watch_files: List[str] = []
         ignore_files: List[str] = []
-        verbose_run: bool = False
+        verbose_run: bool = True
 
     # Declare your variables here
+    pip_version: str = var(default="21.0.1")
+    poetry_version: str = var(default="1.0.10")
 
     def __init__(self) -> None:
-        # Define your variables here
-        ...
+        pass
+
+    @pr.command
+    def bootstrap(self) -> None:
+        run(f"pip install pip=={self.pip_version}")
+        run(f"pip install poetry=={self.poetry_version}")
+        run("poetry config virtualenvs.create true")
+        run("poetry config virtualenvs.in-project true")
+        run("poetry install --no-root")
+
+    @pr.command
+    def test(self) -> None:
+        run("pytest tests")
 
     # Define your commands, hooks and properties here
 

@@ -52,7 +52,9 @@ class EnvoClientLocalEnv(UserEnv):  # type: ignore
         ignore_files: List[str] = []
         verbose_run: bool = True
 
-    # Declare your variables here
+    class Environ:
+        ...
+    e: Environ
 
     def __init__(self) -> None:
         # Define your variables here

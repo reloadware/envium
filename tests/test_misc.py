@@ -20,6 +20,13 @@ class TestMisc:
         assert env.test_var == "Cake"
         assert env.get_env_vars() == {"ENV_TESTVAR": "Cake"}
 
+    def test_no_name(self):
+        class Env(Environ):
+            test_var: str = facade.var()
+
+        with raises(facade.EnviumError):
+            env = Env(name="")
+
     def test_raw(self):
         class Env(Environ):
             test_var: str = facade.var(raw=True)
@@ -210,7 +217,7 @@ class TestLoading:
         class Env(Environ):
             class Python(VarGroup):
                 class Version(VarGroup):
-                    minor: str = var(default="6")
+                    minor: str = var("6")
                     major: str = var(default="3")
 
                 version = Version()

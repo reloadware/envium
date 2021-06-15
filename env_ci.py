@@ -52,7 +52,9 @@ class EnviumCiEnv(UserEnv):  # type: ignore
         ignore_files: List[str] = []
         verbose_run: bool = True
 
-    # Declare your variables here
+    class Environ:
+        ...
+    e: Environ
 
     def __init__(self) -> None:
         # Define your variables here
@@ -99,10 +101,10 @@ class EnviumCiEnv(UserEnv):  # type: ignore
     def generate_version(self) -> None:
         import toml
 
-        config = toml.load(str(self.root / "pyproject.toml"))
+        config = toml.load(str(self.meta.root / "pyproject.toml"))
         version: str = config["tool"]["poetry"]["version"]
 
-        version_file = self.root / "envium/__version__.py"
+        version_file = self.meta.root / "envium/__version__.py"
         Path(version_file).touch()
 
         version_file.write_text(f'__version__ = "{version}"\n')

@@ -52,12 +52,16 @@ class EnvoClientCommEnv(UserEnv):  # type: ignore
         ignore_files: List[str] = []
         verbose_run: bool = True
 
-    # Declare your variables here
-    pip_version: str = var(default="21.0.1")
-    poetry_version: str = var(default="1.0.10")
+    class Environ:
+        ...
+    e: Environ
+
+    pip_version: str
+    poetry_version: str
 
     def __init__(self) -> None:
-        pass
+        self.pip_version = "21.0.1"
+        self.poetry_version = "1.0.10"
 
     @pr.command
     def bootstrap(self) -> None:

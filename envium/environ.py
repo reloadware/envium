@@ -165,8 +165,8 @@ class Var(FinalVar):
     _default: Optional[VarType]
     _default_factory: Optional[Callable]
 
-    def __init__(self, raw: bool = False,
-                 default: Optional[VarType] = None,
+    def __init__(self, default: Optional[VarType] = None,
+                 raw: bool = False,
                  default_factory: Optional[Callable] = None) -> None:
         super().__init__(raw=raw)
         self._default_factory = default_factory
@@ -265,7 +265,7 @@ class VarGroup(BaseVar):
             if isinstance(attr, BaseVar):
                 setattr(self, f, deepcopy(attr))
 
-    def process(self, e: "VarGroup") -> None:
+    def _process(self, e: "VarGroup") -> None:
         self.e = e
 
         annotations = [c.__annotations__ for c in self.__class__.__mro__ if hasattr(c, "__annotations__")]
@@ -297,7 +297,7 @@ class VarGroup(BaseVar):
             self.children.append(v)
 
             if isinstance(v, VarGroup):
-                v.process(self.e)
+                v._process(self.e)
             elif isinstance(v, FinalVar):
                 v._init_value(from_environ=self._load)
 
@@ -401,9 +401,12 @@ class VarGroup(BaseVar):
 
 
 class Environ(VarGroup):
-    def __init__(self, name: Optional[str] = None, load: bool=True):
+    def __init__(self, name: str, load: bool=True):
+        if not name:
+            raise EnviumError("Root needs to have a name")
+
         super().__init__(raw=True, name=name, load=load)
-        self.process(self)
+        self._process(self)
 
 
 var = Var

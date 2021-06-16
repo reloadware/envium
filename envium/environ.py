@@ -177,7 +177,8 @@ class Var(FinalVar):
 
     def _init_value(self, from_environ: bool):
         if from_environ:
-            self._value = os.environ.get(self._get_env_name(), None)
+            env_value = os.environ.get(self._get_env_name(), None)
+            self._value = self._type_(env_value) if env_value else None
 
         if not self._value:
             self._value = self._default
@@ -401,12 +402,15 @@ class VarGroup(BaseVar):
 
 
 class Environ(VarGroup):
-    def __init__(self, name: str, load: bool=True):
+    def __init__(self, name: str, load: bool=False):
         if not name:
             raise EnviumError("Root needs to have a name")
 
         super().__init__(raw=True, name=name, load=load)
         self._process(self)
+
+        if self._load:
+            self.validate()
 
 
 var = Var

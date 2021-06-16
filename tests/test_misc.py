@@ -170,6 +170,15 @@ class TestMisc:
                                       'VERSION_MAJOR': '6',
                                       'VERSION_MINOR': '3'}
 
+    def test_path(self):
+        class Env(Environ):
+            test_var: Path = facade.var(Path("my_path/child"))
+
+        env = Env(name="env")
+
+        assert env.test_var == Path("my_path/child")
+        assert env.get_env_vars() == {"ENV_TESTVAR": "my_path/child"}
+
 
 class TestComputed:
     def test_fget(self):
@@ -233,6 +242,14 @@ class TestLoading:
                                       'ENV_PYTHON_VERSION_MAJOR': '3',
                                       'ENV_PYTHON_VERSION_MINOR': '8',
                                       'TEST_VAR': 'From environ'}
+
+    def test_path(self, sandbox, env_sandbox):
+        class Env(Environ):
+            test_var: Path = var()
+        os.environ["ENV_TESTVAR"] = "test_path/child"
+
+        env = Env(name="env", load=True)
+        assert env.test_var == Path("test_path/child")
 
 
 class TestDumping:

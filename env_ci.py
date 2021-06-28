@@ -12,10 +12,10 @@ from typing import Any, Dict, List, Optional, Tuple  # noqa: F401
 import envo  # noqa: F401
 from envo import VirtualEnv  # noqa: F401
 from envo import (
+    Env,
     Namespace,
     Plugin,
     Source,
-    Env,
     boot_code,
     command,
     computed_var,
@@ -102,7 +102,7 @@ class EnviumCiEnv(ParentEnv):  # type: ignore
 
     @p.command
     def render(self) -> None:
-        from jinja2 import Template, StrictUndefined
+        from jinja2 import StrictUndefined, Template
 
         ctx = {
             "supported_versions": self.supported_versions,

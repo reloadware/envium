@@ -5,7 +5,6 @@ import os
 import typing
 from abc import ABC, abstractmethod
 from copy import deepcopy
-from dataclasses import dataclass, field
 from pathlib import Path
 from typing import (
     TYPE_CHECKING,
@@ -429,6 +428,20 @@ class Environ(VarGroup):
             self.validate()
 
 
-var = Var
-computed_var = ComputedVar
+def var(
+    default: Optional[VarType] = None,
+    raw: bool = False,
+    default_factory: Optional[Callable] = None,
+) -> Any:
+    return Var(default, raw, default_factory)
+
+
+def computed_var(
+    fget: Optional[Callable] = None,
+    fset: Optional[Callable] = None,
+    raw: bool = False,
+) -> Any:
+    return ComputedVar(fget, fset, raw)
+
+
 Group = VarGroup

@@ -34,4 +34,3 @@ def env_sandbox() -> Path:
 
     yield
     os.environ = environ_before
-

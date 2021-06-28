@@ -3,9 +3,10 @@ from pathlib import Path
 from textwrap import dedent
 from typing import Optional
 
-from tests import facade, utils
-from tests.facade import var, Environ, VarGroup
 from pytest import raises
+
+from tests import facade, utils
+from tests.facade import Environ, VarGroup, var
 
 
 class TestMisc:
@@ -71,9 +72,11 @@ class TestMisc:
         assert env.python.name == "python"
         assert env.test_var == "Cake"
 
-        assert env.get_env_vars() == {'ENV_PYTHON_NAME': 'python',
-                                      'ENV_PYTHON_VERSION': '3.8.2',
-                                      'ENV_TESTVAR': 'Cake'}
+        assert env.get_env_vars() == {
+            "ENV_PYTHON_NAME": "python",
+            "ENV_PYTHON_VERSION": "3.8.2",
+            "ENV_TESTVAR": "Cake",
+        }
 
     def test_raw_in_nested(self):
         class Env(Environ):
@@ -93,9 +96,11 @@ class TestMisc:
         assert env.python.name == "python"
         assert env.test_var == "Cake"
 
-        assert env.get_env_vars() == {'ENV_PYTHON_NAME': 'python',
-                                      'VERSION': '3.8.2',
-                                      'TEST_VAR': 'Cake'}
+        assert env.get_env_vars() == {
+            "ENV_PYTHON_NAME": "python",
+            "VERSION": "3.8.2",
+            "TEST_VAR": "Cake",
+        }
 
     def test_double_nested(self):
         class Env(Environ):
@@ -121,10 +126,12 @@ class TestMisc:
         assert env.python.name == "python"
         assert env.test_var == "Cake"
 
-        assert env.get_env_vars() == {'ENV_PYTHON_NAME': 'python',
-                                      'ENV_PYTHON_VERSION_MAJOR': '6',
-                                      'ENV_PYTHON_VERSION_MINOR': '3',
-                                      'ENV_TESTVAR': 'Cake'}
+        assert env.get_env_vars() == {
+            "ENV_PYTHON_NAME": "python",
+            "ENV_PYTHON_VERSION_MAJOR": "6",
+            "ENV_PYTHON_VERSION_MINOR": "3",
+            "ENV_TESTVAR": "Cake",
+        }
 
     def test_raw_group(self):
         class Env(Environ):
@@ -142,8 +149,10 @@ class TestMisc:
         assert env.python.version == "3.8.2"
         assert env.python.name == "python"
 
-        assert env.get_env_vars() == {'PYTHON_NAME': 'python',
-                                      'PYTHON_VERSION': '3.8.2'}
+        assert env.get_env_vars() == {
+            "PYTHON_NAME": "python",
+            "PYTHON_VERSION": "3.8.2",
+        }
 
     def test_raw_nested_group(self):
         class Env(Environ):
@@ -166,9 +175,11 @@ class TestMisc:
         assert env.python.version.major == "6"
         assert env.python.name == "python"
 
-        assert env.get_env_vars() == {'ENV_PYTHON_NAME': 'python',
-                                      'VERSION_MAJOR': '6',
-                                      'VERSION_MINOR': '3'}
+        assert env.get_env_vars() == {
+            "ENV_PYTHON_NAME": "python",
+            "VERSION_MAJOR": "6",
+            "VERSION_MINOR": "3",
+        }
 
     def test_path(self):
         class Env(Environ):
@@ -185,6 +196,7 @@ class TestComputed:
         class Env(Environ):
             def fget(self) -> str:
                 return "computed"
+
             test_var: str = facade.computed_var(fget=fget)
 
         env = Env(name="env")
@@ -215,10 +227,18 @@ class TestComputed:
                     self.cakes_n._value = 2
                 self.cakes_n._value -= 1
                 return 1.0 / self.cakes_n._value
+
             cakes_n: float = facade.computed_var(fget=fget)
 
         env = Env(name="env")
-        utils.assert_errors(env.errors, [facade.ComputedVarError("env.cakes_n", ZeroDivisionError("float division by zero"))])
+        utils.assert_errors(
+            env.errors,
+            [
+                facade.ComputedVarError(
+                    "env.cakes_n", ZeroDivisionError("float division by zero")
+                )
+            ],
+        )
 
 
 class TestLoading:
@@ -238,18 +258,28 @@ class TestLoading:
         os.environ["ENV_PYTHON_VERSION_MINOR"] = "8"
         os.environ["TEST_VAR"] = "From environ"
         env = Env(name="env", load=True)
-        assert env.get_env_vars() == {'ENV_PYTHON_NAME': 'Python',
-                                      'ENV_PYTHON_VERSION_MAJOR': '3',
-                                      'ENV_PYTHON_VERSION_MINOR': '8',
-                                      'TEST_VAR': 'From environ'}
+        assert env.get_env_vars() == {
+            "ENV_PYTHON_NAME": "Python",
+            "ENV_PYTHON_VERSION_MAJOR": "3",
+            "ENV_PYTHON_VERSION_MINOR": "8",
+            "TEST_VAR": "From environ",
+        }
 
     def test_path(self, sandbox, env_sandbox):
         class Env(Environ):
             test_var: Path = var()
+
         os.environ["ENV_TESTVAR"] = "test_path/child"
 
         env = Env(name="env", load=True)
         assert env.test_var == Path("test_path/child")
+
+    def test_optional(self, sandbox, env_sandbox):
+        class Env(Environ):
+            test_var: Path = var()
+
+        with raises(facade.ValidationErrors):
+            env = Env(name="env", load=True)
 
 
 class TestDumping:
@@ -270,14 +300,17 @@ class TestDumping:
         env_path = Path("envs/.env")
         env.dump(env_path)
 
-        assert env_path.read_text() == dedent(
-            """
+        assert (
+            env_path.read_text()
+            == dedent(
+                """
             ENV_PYTHON_NAME="Python"
             ENV_PYTHON_VERSION_MAJOR="3"
             ENV_PYTHON_VERSION_MINOR="6"
             ENV_TESTVAR="test_var"
             """
-        ).strip()
+            ).strip()
+        )
 
 
 class TestValidation:
@@ -301,7 +334,9 @@ class TestValidation:
             test_var: int = facade.var(default="Cake")
 
         env = Env(name="env")
-        utils.assert_errors(env.errors, [facade.WrongTypeError("env.test_var", int, str)])
+        utils.assert_errors(
+            env.errors, [facade.WrongTypeError("env.test_var", int, str)]
+        )
 
     def test_raises_validation_error(self):
         class Env(Environ):

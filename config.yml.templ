@@ -4,10 +4,9 @@ workflows:
   version: 2
   test:
     jobs:
-      - test-3-6
-      - test-3-7
-      - test-3-8
-      - test-3-9
+      {%- for v in supported_versions %}
+      - test-{{ v.id }}
+      {%- endfor %}
       - check-black
 #      - flake8
       - mypy
@@ -16,10 +15,9 @@ workflows:
 #            - flake8
             - mypy
             - check-black
-            - test-3-6
-            - test-3-7
-            - test-3-8
-            - test-3-9
+            {%- for v in supported_versions %}
+            - test-{{ v.id }}
+            {%- endfor %}
           filters:
             branches:
               only: master
@@ -32,10 +30,10 @@ defaults: &defaults
   environment:
     CRYPTOGRAPHY_DONT_BUILD_RUST: 1
 
-
+{% raw %}
 cache-key: &cache-key
   deps-{{ .Branch }}-{{ .Environment.CIRCLE_JOB }}
-
+{% endraw %}
 
 restore_cache: &restore_cache
   restore_cache:
@@ -51,7 +49,7 @@ save_cache: &save_cache
 install_envo: &install_envo
   run:
     name: Install envo
-    command: pip install envo==0.9.9.13
+    command: pip install envo=={{ envo_version }}
 
 bootstrap: &bootstrap
   run:
@@ -99,10 +97,12 @@ jobs:
           command: p.check_black
           shell: envo ci
       - *save_cache
-  test-3-6:
+
+{%- for v in supported_versions %}
+  test-{{ v.id }}:
     <<: *defaults
     docker:
-      - image: circleci/python:3.6
+      - image: circleci/python:{{ v.ver }}
 
     steps:
       - checkout
@@ -119,70 +119,7 @@ jobs:
       - store_test_results:
           path: test-results
       - *save_cache
-
-  test-3-7:
-    <<: *defaults
-    docker:
-      - image: circleci/python:3.7
-
-    steps:
-      - checkout
-      - *restore_cache
-      - *install_envo
-      - *bootstrap
-      - run:
-          name: Test
-          command: p.test
-          shell: envo ci
-      - store_artifacts:
-          path: htmlcov
-          destination: coverage
-      - store_test_results:
-          path: test-results
-      - *save_cache
-
-  test-3-8:
-    <<: *defaults
-    docker:
-      - image: circleci/python:3.8
-
-    steps:
-      - checkout
-      - *restore_cache
-      - *install_envo
-      - *bootstrap
-      - run:
-          name: Test
-          command: p.test
-          shell: envo ci
-      - store_artifacts:
-          path: htmlcov
-          destination: coverage
-      - store_test_results:
-          path: test-results
-      - *save_cache
-
-  test-3-9:
-    <<: *defaults
-    docker:
-      - image: circleci/python:3.9
-
-    steps:
-      - checkout
-      - *restore_cache
-      - *install_envo
-      - *bootstrap
-      - run:
-          name: Test
-          command: p.test
-          shell: envo ci
-      - store_artifacts:
-          path: htmlcov
-          destination: coverage
-      - store_test_results:
-          path: test-results
-      - *save_cache
-
+{% endfor %}
 
   publish:
     <<: *defaults

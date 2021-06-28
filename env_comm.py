@@ -1,69 +1,82 @@
-import os  # noqa: F401
-
-from typing import List, Dict, Any, Optional, Tuple  # noqa: F401
-
+import os
 from pathlib import Path
-
-from dataclasses import dataclass  # noqa: F401
 
 import envo  # noqa: F401
 
-from envo import (  # noqa: F401
-    logger,
-    command,
-    context,
-    run,
-    precmd,
-    onstdout,
-    onstderr,
-    postcmd,
-    onload,
-    oncreate,
-    onunload,
-    ondestroy,
-    boot_code,
-    on_partial_reload,
-    Plugin,
-    VirtualEnv,
-    UserEnv,
+root = Path(__file__).parent.absolute()
+envo.add_source_roots([root])
+
+import os  # noqa: F401
+from dataclasses import dataclass  # noqa: F401
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple  # noqa: F401
+
+from envo import VirtualEnv  # noqa: F401
+from envo import (
+    Env,
     Namespace,
+    Plugin,
     Source,
+    boot_code,
+    command,
+    computed_var,
     console,
+    context,
+    inject,
+    logger,
+    on_partial_reload,
+    oncreate,
+    ondestroy,
+    onload,
+    onstderr,
+    onstdout,
+    onunload,
+    postcmd,
+    precmd,
+    run,
     var,
-    computed_var
 )
 
 # Declare your command namespaces here
 # like this:
-pr = Namespace("pr")
+p = Namespace("p")
 
 
-class EnvoClientCommEnv(UserEnv):  # type: ignore
-    class Meta(UserEnv.Meta):  # type: ignore
-        root: Path = Path(__file__).parent.absolute()
-        stage: str = "comm"
-        emoji: str = "👌"
-        parents: List[str] = []
-        plugins: List[Plugin] = [VirtualEnv]
-        sources: List[Source] = []
-        name: str = "envium"
-        version: str = "0.1.0"
-        watch_files: List[str] = []
-        ignore_files: List[str] = []
+@dataclass
+class PythonVersion:
+    ver: str
+
+    @property
+    def id(self) -> str:
+        return self.ver.replace(".", "-")
+
+
+class EnviumCommEnv(Env, VirtualEnv):  # type: ignore
+    class Meta(Env.Meta):  # type: ignore
+        root: Path = root
         verbose_run: bool = True
 
-    class Environ:
+    class Environ(Env.Environ, VirtualEnv.Environ):
         ...
+
     e: Environ
 
     pip_version: str
     poetry_version: str
+    envo_version = "0.9.9.13"
+    supported_versions = [
+        PythonVersion("3.6"),
+        PythonVersion("3.7"),
+        PythonVersion("3.8"),
+        PythonVersion("3.9"),
+    ]
 
-    def __init__(self) -> None:
+    def init(self) -> None:
+        super().init()
         self.pip_version = "21.0.1"
-        self.poetry_version = "1.0.10"
+        self.poetry_version = "1.1.7"
 
-    @pr.command
+    @p.command
     def bootstrap(self) -> None:
         run(f"pip install pip=={self.pip_version}")
         run(f"pip install poetry=={self.poetry_version}")
@@ -71,11 +84,18 @@ class EnvoClientCommEnv(UserEnv):  # type: ignore
         run("poetry config virtualenvs.in-project true")
         run("poetry install --no-root")
 
-    @pr.command
+    @p.command
     def test(self) -> None:
         run("pytest tests")
 
-    # Define your commands, hooks and properties here
+    @p.command
+    def mypy(self) -> None:
+        inject("mypy .")
+
+    @p.command
+    def black(self) -> None:
+        inject("isort .")
+        inject("black .")
 
 
-Env = EnvoClientCommEnv
+ThisEnv = EnviumCommEnv

@@ -1,103 +1,118 @@
-import os  # noqa: F401
-
-from typing import List, Dict, Any, Optional, Tuple  # noqa: F401
-
 from pathlib import Path
-
-from dataclasses import dataclass  # noqa: F401
 
 import envo  # noqa: F401
 
-from envo import (  # noqa: F401
-    logger,
-    command,
-    context,
-    run,
-    precmd,
-    onstdout,
-    onstderr,
-    postcmd,
-    onload,
-    oncreate,
-    onunload,
-    ondestroy,
-    boot_code,
-    on_partial_reload,
-    Plugin,
-    VirtualEnv,
-    UserEnv,
+root = Path(__file__).parent.absolute()
+envo.add_source_roots([root])
+
+from dataclasses import dataclass  # noqa: F401
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple  # noqa: F401
+
+import envo  # noqa: F401
+from envo import VirtualEnv  # noqa: F401
+from envo import (
     Namespace,
+    Plugin,
     Source,
+    Env,
+    boot_code,
+    command,
+    computed_var,
     console,
+    context,
+    logger,
+    on_partial_reload,
+    oncreate,
+    ondestroy,
+    onload,
+    onstderr,
+    onstdout,
+    onunload,
+    postcmd,
+    precmd,
+    run,
     var,
-    computed_var
 )
+
+from env_comm import EnviumCommEnv as ParentEnv
 
 # Declare your command namespaces here
 # like this:
-pr = Namespace("pr")
+p = Namespace("p")
 
 
-class EnviumCiEnv(UserEnv):  # type: ignore
-    class Meta(UserEnv.Meta):  # type: ignore
-        root: Path = Path(__file__).parent.absolute()
+class EnviumCiEnv(ParentEnv):  # type: ignore
+    class Meta(ParentEnv.Meta):  # type: ignore
+        root: Path = root
         stage: str = "ci"
         emoji: str = "🧪"
-        parents: List[str] = ["env_comm.py"]
-        plugins: List[Plugin] = []
-        sources: List[Source] = []
         name: str = "envium"
-        version: str = "0.1.0"
-        watch_files: List[str] = []
-        ignore_files: List[str] = []
-        verbose_run: bool = True
 
-    class Environ:
+    class Environ(ParentEnv.Environ):
         ...
+
     e: Environ
 
-    def __init__(self) -> None:
-        # Define your variables here
-        ...
+    ci_config_templ: Path
+    config: Path
 
-    @pr.command
+    def init(self) -> None:
+        super().init()
+
+        self.ci_config_templ = self.meta.root / "config.yml.templ"
+        self.config = self.meta.root / ".circleci/config.yml"
+
+    @p.command
     def bootstrap(self) -> None:
         run("mkdir -p workspace")
         super().bootstrap()
 
-    @pr.command
+    @p.command
     def test(self) -> None:
-        run("pytest -v --cov-report html --cov=envium tests --junitxml=test-results/junit.xml")
+        run(
+            "pytest -v --cov-report html --cov=envium tests --junitxml=test-results/junit.xml"
+        )
 
-    @pr.command
+    @p.command
     def build(self) -> None:
         run("poetry build")
 
-    @pr.command
+    @p.command
     def publish(self) -> None:
         run("poetry publish --username $PYPI_USERNAME --password $PYPI_PASSWORD")
 
-    @pr.command
+    @p.command
     def rstcheck(self) -> None:
         pass
         # run("rstcheck README.rst | tee ./workspace/rstcheck.txt")
 
-    @pr.command
+    @p.command
     def flake(self) -> None:
         pass
         # run("flake8 . | tee ./workspace/flake8.txt")
 
-    @pr.command
+    @p.command
     def check_black(self) -> None:
-        pass
-        # run("black --check . | tee ./workspace/black.txt")
+        run("black --check . | tee ./workspace/black.txt")
 
-    @pr.command
+    @p.command
     def mypy(self) -> None:
-        pass
-        # run("mypy . | tee ./workspace/mypy.txt")
+        run("mypy . | tee ./workspace/mypy.txt")
 
-    @pr.command
+    @p.command
+    def render(self) -> None:
+        from jinja2 import Template, StrictUndefined
+
+        ctx = {
+            "supported_versions": self.supported_versions,
+            "envo_version": self.envo_version,
+        }
+
+        templ = Template(self.ci_config_templ.read_text(), undefined=StrictUndefined)
+        self.config.write_text(templ.render(**ctx))
+
+    @p.command
     def generate_version(self) -> None:
         import toml
 
@@ -110,4 +125,4 @@ class EnviumCiEnv(UserEnv):  # type: ignore
         version_file.write_text(f'__version__ = "{version}"\n')
 
 
-Env = EnviumCiEnv
+ThisEnv = EnviumCiEnv

@@ -1,67 +1,75 @@
-import os  # noqa: F401
-
-from typing import List, Dict, Any, Optional, Tuple  # noqa: F401
-
+import os
 from pathlib import Path
-
-from dataclasses import dataclass  # noqa: F401
 
 import envo  # noqa: F401
 
-from envo import (  # noqa: F401
-    logger,
-    command,
-    context,
-    run,
-    precmd,
-    onstdout,
-    onstderr,
-    postcmd,
-    onload,
-    oncreate,
-    onunload,
-    ondestroy,
-    boot_code,
-    on_partial_reload,
-    Plugin,
-    VirtualEnv,
-    UserEnv,
+root = Path(__file__).parent.absolute()
+envo.add_source_roots([root])
+
+import os  # noqa: F401
+from dataclasses import dataclass  # noqa: F401
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple  # noqa: F401
+
+from envo import VirtualEnv  # noqa: F401
+from envo import (
     Namespace,
+    Plugin,
     Source,
+    boot_code,
+    command,
+    computed_var,
     console,
+    context,
+    logger,
+    on_partial_reload,
+    oncreate,
+    ondestroy,
+    onload,
+    onstderr,
+    onstdout,
+    onunload,
+    postcmd,
+    precmd,
+    run,
     var,
-    computed_var
 )
+
+from env_comm import EnviumCommEnv as ParentEnv
 
 # Declare your command namespaces here
 # like this:
 # my_namespace = Namespace("my_namespace")
 
 
-class EnvoClientLocalEnv(UserEnv):  # type: ignore
-    class Meta(UserEnv.Meta):  # type: ignore
+p = Namespace("p")
+
+
+class EnviumLocalEnv(ParentEnv):  # type: ignore
+    class Meta(ParentEnv.Meta):  # type: ignore
         root: Path = Path(__file__).parent.absolute()
         stage: str = "local"
         emoji: str = "🐣"
-        parents: List[str] = ["env_comm.py"]
-        plugins: List[Plugin] = []
-        sources: List[Source] = []
         name: str = "envium"
-        version: str = "0.1.0"
-        watch_files: List[str] = []
-        ignore_files: List[str] = []
-        verbose_run: bool = True
 
-    class Environ:
+    class Environ(ParentEnv.Environ):
         ...
+
     e: Environ
 
-    def __init__(self) -> None:
-        # Define your variables here
-        ...
+    python_ver = "3.9.5"
+
+    @p.command
+    def bootstrap(self) -> None:
+        path_before = os.environ["PATH"]
+        os.environ[
+            "PATH"
+        ] = f"/home/kwazar/.pyenv/versions/{self.python_ver}/bin/:{os.environ['PATH']}"
+        run(f"python -m venv .venv")
+        os.environ["PATH"] = f"{self.python_ver}/bin/:{os.environ['PATH']}"
+        super().bootstrap()
+
+        os.environ["PATH"] = path_before
 
 
-    # Define your commands, hooks and properties here
-
-
-Env = EnvoClientLocalEnv
+ThisEnv = EnviumLocalEnv

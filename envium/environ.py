@@ -1,14 +1,17 @@
 import inspect
 import os
+
+# Python >= 3.8
+import typing
 from abc import ABC, abstractmethod
 from copy import deepcopy
-
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import (
     TYPE_CHECKING,
     Any,
     Callable,
+    ClassVar,
     Dict,
     Generic,
     List,
@@ -16,33 +19,23 @@ from typing import (
     Tuple,
     Type,
     TypeVar,
-    Union, ClassVar
+    Union,
 )
 
-# Python >= 3.8
-import typing
-
-
 try:
-    typing.get_args
-    typing.get_origin
+    typing.get_args  # type: ignore
+    typing.get_origin  # type: ignore
 # Compatibility
 except AttributeError:
-    typing.get_args = lambda t: getattr(t, '__args__', ()) if t is not Generic else Generic
-    typing.get_origin = lambda t: getattr(t, '__origin__', None)
+    typing.get_args = lambda t: getattr(t, "__args__", ()) if t is not Generic else Generic  # type: ignore
+    typing.get_origin = lambda t: getattr(t, "__origin__", None)  # type: ignore
 
 
 if TYPE_CHECKING:
-    from envo.env import BaseEnv
+    pass
 
 
-
-__all__ = [
-    "var",
-    "computed_var",
-    "VarGroup",
-    "Environ"
-]
+__all__ = ["var", "computed_var", "VarGroup", "Environ"]
 
 
 class EnviumError(Exception):
@@ -88,18 +81,20 @@ class ValidationErrors(EnviumError):
         super().__init__(msg)
 
 
-VarType = Type["VarType"]
+VarType = TypeVar("VarType")
 
 
-class BaseVar(ABC):
+class BaseVar(ABC, Generic[VarType]):
     _raw: bool = False
-    e: Optional["VarGroup"]
+
+    # will be injected by parent
+    _root: Optional["VarGroup"]
     _parent: Optional["BaseVar"]
     _name: Optional[str]
 
     def __init__(self, raw: bool = False) -> None:
         self._raw = raw
-        self.e = None
+        self._root = None
         self._parent = None
         self._name = None
 
@@ -108,11 +103,15 @@ class BaseVar(ABC):
         if self._raw:
             return self._name
 
-        ret = f"{self._parent._fullname}.{self._name}" if self._parent else f"{self.e._name}.{self._name}"
+        ret = (
+            f"{self._parent._fullname}.{self._name}"
+            if self._parent
+            else f"{self._root._name}.{self._name}"
+        )
         return ret
 
 
-class FinalVar(BaseVar, ABC):
+class FinalVar(BaseVar, ABC, Generic[VarType]):
     _type_: Optional[Type]
     _optional: bool
     _vars: List["BaseVar"]
@@ -161,13 +160,16 @@ class FinalVar(BaseVar, ABC):
         raise NotImplementedError
 
 
-class Var(FinalVar):
+class Var(FinalVar, Generic[VarType]):
     _default: Optional[VarType]
     _default_factory: Optional[Callable]
 
-    def __init__(self, default: Optional[VarType] = None,
-                 raw: bool = False,
-                 default_factory: Optional[Callable] = None) -> None:
+    def __init__(
+        self,
+        default: Optional[VarType] = None,
+        raw: bool = False,
+        default_factory: Optional[Callable] = None,
+    ) -> None:
         super().__init__(raw=raw)
         self._default_factory = default_factory
         self._default = default
@@ -190,7 +192,7 @@ class Var(FinalVar):
         self._value = new_value
 
     def _get_errors(self) -> List[EnviumError]:
-        ret = []
+        ret: List[EnviumError] = []
 
         # Try evaluating value first. There might be some issues with that
         if not self._type_:
@@ -202,7 +204,12 @@ class Var(FinalVar):
             try:
                 if self._type_ and not isinstance(self._get_value(), self._type_):
                     ret.append(
-                        WrongTypeError(type_=self._type_, var_name=self._fullname, got_type=type(self._get_value())))
+                        WrongTypeError(
+                            type_=self._type_,
+                            var_name=self._fullname,
+                            got_type=type(self._get_value()),
+                        )
+                    )
             except TypeError:
                 # isinstance will fail for types like Union[] etc
                 pass
@@ -214,7 +221,12 @@ class ComputedVar(FinalVar):
     _fget: Optional[Callable]
     _fset: Optional[Callable]
 
-    def __init__(self, fget: Optional[Callable] = None, fset: Optional[Callable] = None, raw: bool = False) -> None:
+    def __init__(
+        self,
+        fget: Optional[Callable] = None,
+        fset: Optional[Callable] = None,
+        raw: bool = False,
+    ) -> None:
         super().__init__(raw=raw)
         self._fget = fget
         self._fset = fset
@@ -225,7 +237,7 @@ class ComputedVar(FinalVar):
     def _get_value(self) -> Any:
         object.__setattr__(self, "_ready", False)
         if self._fget:
-            ret = self._fget(self.e)
+            ret = self._fget(self._root)
         else:
             ret = self._value
         object.__setattr__(self, "_ready", True)
@@ -234,7 +246,7 @@ class ComputedVar(FinalVar):
     def _set_value(self, new_value) -> None:
         object.__setattr__(self, "_ready", False)
         if self._fset:
-            self._fset(self.e, new_value)
+            self._fset(self._root, new_value)
         else:
             self._value = new_value
         object.__setattr__(self, "_ready", True)
@@ -253,7 +265,9 @@ class VarGroup(BaseVar):
 
     _load: bool
 
-    def __init__(self, raw: bool = False, name: Optional[str] = None, load: bool=True):
+    def __init__(
+        self, raw: bool = False, name: Optional[str] = None, load: bool = True
+    ):
         super().__init__(raw=raw)
         self.children = []
         self._load = load
@@ -266,10 +280,12 @@ class VarGroup(BaseVar):
             if isinstance(attr, BaseVar):
                 setattr(self, f, deepcopy(attr))
 
-    def _process(self, e: "VarGroup") -> None:
-        self.e = e
-
-        annotations = [c.__annotations__ for c in self.__class__.__mro__ if hasattr(c, "__annotations__")]
+    def _process(self) -> None:
+        annotations = [
+            c.__annotations__
+            for c in self.__class__.__mro__
+            if hasattr(c, "__annotations__")
+        ]
         flat_annotations = {}
 
         for a in annotations:
@@ -278,7 +294,7 @@ class VarGroup(BaseVar):
         for n in dir(self):
             v = inspect.getattr_static(self, n)
 
-            if v is self.e:
+            if v is self._root:
                 continue
 
             if v is self._parent:
@@ -287,31 +303,30 @@ class VarGroup(BaseVar):
             if not isinstance(v, BaseVar):
                 continue
 
-            type_ = flat_annotations.get(n, None)
-            optional = typing.get_origin(type_) is Union and type(None) in typing.get_args(type_)
-            v._type_ = type_
             v._name = n
-            v._optional = optional
-            v.e = self.e
+            v._root = self._root
             v._parent = self
 
             self.children.append(v)
 
             if isinstance(v, VarGroup):
-                v._process(self.e)
+                v._process()
             elif isinstance(v, FinalVar):
+                type_ = flat_annotations.get(n, None)
+                optional = typing.get_origin(type_) is Union and type(None) in typing.get_args(type_)  # type: ignore
+                v._optional = optional
+                v._type_ = type_
                 v._init_value(from_environ=self._load)
-
 
             v._ready = True
 
     @property
     def flat(self) -> List[FinalVar]:
-        ret = []
+        ret: List[FinalVar] = []
         for c in self.children:
             if isinstance(c, VarGroup):
                 ret.extend(c.flat)
-            else:
+            elif isinstance(c, FinalVar):
                 ret.append(c)
 
         ret = sorted(ret, key=lambda x: x._fullname)
@@ -348,7 +363,7 @@ class VarGroup(BaseVar):
 
     @property
     def errors(self) -> List[EnviumError]:
-        ret = []
+        ret: List[EnviumError] = []
         env_names = []
         for v in self.flat:
             env_name = v._get_env_name()
@@ -396,18 +411,19 @@ class VarGroup(BaseVar):
         path.touch(exist_ok=True)
 
         content = "\n".join(
-            [f'{key}="{value}"' for key, value in self.e.get_env_vars().items()]
+            [f'{key}="{value}"' for key, value in self._root.get_env_vars().items()]
         )
         path.write_text(content, "utf-8")
 
 
 class Environ(VarGroup):
-    def __init__(self, name: str, load: bool=False):
+    def __init__(self, name: str, load: bool = False):
         if not name:
             raise EnviumError("Root needs to have a name")
 
         super().__init__(raw=True, name=name, load=load)
-        self._process(self)
+        self._root = self
+        self._process()
 
         if self._load:
             self.validate()

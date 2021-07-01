@@ -232,7 +232,7 @@ class TestComputed:
 
         env = Env(name="env")
         utils.assert_errors(
-            env.errors,
+            env._errors,
             [
                 facade.ComputedVarError(
                     "env.cakes_n", ZeroDivisionError("float division by zero")
@@ -320,14 +320,14 @@ class TestValidation:
 
         env = Env(name="env")
 
-        utils.assert_errors(env.errors, [facade.NoValueError("env.test_var", str)])
+        utils.assert_errors(env._errors, [facade.NoValueError("env.test_var", str)])
 
     def test_no_type(self):
         class Env(Environ):
             test_var = facade.var(default="Cake")
 
         env = Env(name="env")
-        utils.assert_errors(env.errors, [facade.NoTypeError("env.test_var")])
+        utils.assert_errors(env._errors, [facade.NoTypeError("env.test_var")])
 
     def test_wrong_type(self):
         class Env(Environ):
@@ -335,7 +335,7 @@ class TestValidation:
 
         env = Env(name="env")
         utils.assert_errors(
-            env.errors, [facade.WrongTypeError("env.test_var", int, str)]
+            env._errors, [facade.WrongTypeError("env.test_var", int, str)]
         )
 
     def test_raises_validation_error(self):
@@ -358,4 +358,4 @@ class TestValidation:
         assert env.python.name == "Python"
         assert env.name == "MyEnv"
 
-        utils.assert_errors(env.errors, [facade.RedefinedVarError("NAME")])
+        utils.assert_errors(env._errors, [facade.RedefinedVarError("NAME")])

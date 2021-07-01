@@ -320,11 +320,11 @@ class VarGroup(BaseVar):
             v._ready = True
 
     @property
-    def flat(self) -> List[FinalVar]:
+    def _flat(self) -> List[FinalVar]:
         ret: List[FinalVar] = []
         for c in self.children:
             if isinstance(c, VarGroup):
-                ret.extend(c.flat)
+                ret.extend(c._flat)
             elif isinstance(c, FinalVar):
                 ret.append(c)
 
@@ -361,10 +361,10 @@ class VarGroup(BaseVar):
         return attr._get_value()
 
     @property
-    def errors(self) -> List[EnviumError]:
+    def _errors(self) -> List[EnviumError]:
         ret: List[EnviumError] = []
         env_names = []
-        for v in self.flat:
+        for v in self._flat:
             env_name = v._get_env_name()
 
             if env_name in env_names:
@@ -376,7 +376,7 @@ class VarGroup(BaseVar):
 
         return ret
 
-    def get_env_vars(self) -> Dict[str, str]:
+    def _get_env_vars(self) -> Dict[str, str]:
         """
         Return environmental variables in following format:
         {NAMESPACE_ENVNAME}
@@ -384,10 +384,10 @@ class VarGroup(BaseVar):
         :param owner_name:
         """
 
-        self.validate()
+        self._validate()
 
         envs = {}
-        for v in self.flat:
+        for v in self._flat:
             name = v._get_env_name()
             envs[name] = str(v._get_value())
 
@@ -395,13 +395,13 @@ class VarGroup(BaseVar):
 
         return envs
 
-    def validate(self) -> None:
-        errors = self.errors
+    def _validate(self) -> None:
+        errors = self._errors
 
         if errors:
             raise ValidationErrors(errors)
 
-    def dump(self, path: Union[Path, str]) -> None:
+    def _dump(self, path: Union[Path, str]) -> None:
         path = Path(path)
 
         if not path.parent.exists():
@@ -410,7 +410,7 @@ class VarGroup(BaseVar):
         path.touch(exist_ok=True)
 
         content = "\n".join(
-            [f'{key}="{value}"' for key, value in self._root.get_env_vars().items()]
+            [f'{key}="{value}"' for key, value in self._root._get_env_vars().items()]
         )
         path.write_text(content, "utf-8")
 
@@ -425,7 +425,20 @@ class Environ(VarGroup):
         self._process()
 
         if self._load:
-            self.validate()
+            self._validate()
+
+    def get_env_vars(self) -> Dict[str, str]:
+        return self._get_env_vars()
+
+    def validate(self) -> None:
+        return self._validate()
+
+    def dump(self, path: Union[Path, str]) -> None:
+        return self._dump(path)
+
+    @property
+    def errors(self) -> List[EnviumError]:
+        return self._errors
 
 
 def var(

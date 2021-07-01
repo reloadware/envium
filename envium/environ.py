@@ -179,6 +179,7 @@ class Var(FinalVar, Generic[VarType]):
     def _init_value(self, from_environ: bool):
         if from_environ:
             env_value = os.environ.get(self._get_env_name(), None)
+            env_value = None if env_value == "None" else env_value
             self._value = self._type_(env_value) if env_value else None
 
         if not self._value:
@@ -314,7 +315,11 @@ class VarGroup(BaseVar):
                 type_ = flat_annotations.get(n, None)
                 optional = typing.get_origin(type_) is Union and type(None) in typing.get_args(type_)  # type: ignore
                 v._optional = optional
-                v._type_ = type_
+
+                if optional:
+                    v._type_ = typing.get_args(type_)[0]  # type: ignore
+                else:
+                    v._type_ = type_
                 v._init_value(from_environ=self._load)
 
             v._ready = True

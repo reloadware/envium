@@ -54,6 +54,16 @@ class TestMisc:
         env = Env(name="env")
         assert env.get_env_vars() == {"ENV_TESTVAR": "None"}
 
+    def test_optional_no_value_in_group(self):
+        class Env(Environ):
+            class Group(VarGroup):
+                test_var: Optional[str] = facade.var()
+
+            group = Group()
+
+        env = Env(name="env")
+        assert env.get_env_vars() == {"ENV_GROUP_TESTVAR": "None"}
+
     def test_nested(self):
         class Env(Environ):
             class Python(VarGroup):
@@ -274,12 +284,22 @@ class TestLoading:
         env = Env(name="env", load=True)
         assert env.test_var == Path("test_path/child")
 
-    def test_optional(self, sandbox, env_sandbox):
+    def test_non_optional(self, sandbox, env_sandbox):
         class Env(Environ):
             test_var: Path = var()
 
         with raises(facade.ValidationErrors):
             env = Env(name="env", load=True)
+
+    def test_optional_no_value(self, env_sandbox):
+        os.environ["ENV_TESTVAR"] = "None"
+
+        class Env(Environ):
+            test_var: Optional[str] = facade.var()
+
+        env = Env(name="env", load=True)
+        assert env.test_var is None
+        assert env.get_env_vars() == {"ENV_TESTVAR": "None"}
 
 
 class TestDumping:

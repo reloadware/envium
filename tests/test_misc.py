@@ -291,6 +291,15 @@ class TestLoading:
         with raises(facade.ValidationErrors):
             env = Env(name="env", load=True)
 
+    def test_bool(self, sandbox, env_sandbox):
+        os.environ["ENV_TESTVAR"] = "False"
+
+        class Env(Environ):
+            test_var: bool = var(default=False)
+
+        env = Env(name="env", load=True)
+        assert env.test_var is False
+
     def test_optional_no_value(self, env_sandbox):
         os.environ["ENV_TESTVAR"] = "None"
 

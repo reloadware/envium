@@ -180,7 +180,7 @@ class Var(FinalVar, Generic[VarType]):
         if from_environ:
             env_value = os.environ.get(self._get_env_name(), None)
             env_value = None if env_value == "None" else env_value
-            self._value = self._type_(env_value) if env_value else None
+            self._value = self._from_str(env_value) if env_value else None
 
         if not self._value:
             self._value = self._default
@@ -215,6 +215,12 @@ class Var(FinalVar, Generic[VarType]):
                 pass
 
         return super()._get_errors() + ret
+
+    def _from_str(self, env_value: str) -> VarType:
+        if self._type_ is bool:
+            return env_value == "True"
+        else:
+            return self._type_(env_value)
 
 
 class ComputedVar(FinalVar):
@@ -440,6 +446,9 @@ class Environ(VarGroup):
 
     def dump(self, path: Union[Path, str]) -> None:
         return self._dump(path)
+
+    def save_to_os_environ(self) -> None:
+        os.environ.update(self.get_env_vars())
 
     @property
     def errors(self) -> List[EnviumError]:

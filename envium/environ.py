@@ -19,6 +19,7 @@ from typing import (
     Type,
     TypeVar,
     Union,
+    cast,
 )
 
 try:
@@ -218,9 +219,12 @@ class Var(FinalVar, Generic[VarType]):
 
     def _from_str(self, env_value: str) -> VarType:
         if self._type_ is bool:
-            return env_value == "True"
+            ret = env_value == "True"
         else:
-            return self._type_(env_value)
+            ret = self._type_(env_value)
+
+        ret_casted = cast(VarType, ret)
+        return ret_casted
 
 
 class ComputedVar(FinalVar):

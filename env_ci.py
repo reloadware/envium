@@ -1,39 +1,15 @@
 from pathlib import Path
 
-import envo  # noqa: F401
+import envo
 
 root = Path(__file__).parent.absolute()
 envo.add_source_roots([root])
 
-from dataclasses import dataclass  # noqa: F401
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple  # noqa: F401
+from typing import Any, Dict, List, Optional, Tuple
 
-import envo  # noqa: F401
-from envo import VirtualEnv  # noqa: F401
-from envo import (
-    Env,
-    Namespace,
-    Plugin,
-    Source,
-    boot_code,
-    command,
-    computed_var,
-    console,
-    context,
-    logger,
-    on_partial_reload,
-    oncreate,
-    ondestroy,
-    onload,
-    onstderr,
-    onstdout,
-    onunload,
-    postcmd,
-    precmd,
-    run,
-    var,
-)
+import envo
+from envo import Namespace, run
 
 from env_comm import EnviumCommEnv as ParentEnv
 
@@ -42,12 +18,11 @@ from env_comm import EnviumCommEnv as ParentEnv
 p = Namespace("p")
 
 
-class EnviumCiEnv(ParentEnv):  # type: ignore
-    class Meta(ParentEnv.Meta):  # type: ignore
+class EnviumCiEnv(ParentEnv):
+    class Meta(ParentEnv.Meta):
         root: Path = root
         stage: str = "ci"
         emoji: str = "🧪"
-        name: str = "envium"
 
     class Environ(ParentEnv.Environ):
         ...

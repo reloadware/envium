@@ -271,7 +271,7 @@ class ComputedVar(FinalVar):
 
 
 class VarGroup(BaseVar):
-    children: List[BaseVar]
+    _children: List[BaseVar]
 
     _load: bool
 
@@ -279,7 +279,7 @@ class VarGroup(BaseVar):
         self, raw: bool = False, name: Optional[str] = None, load: bool = True
     ):
         super().__init__(raw=raw)
-        self.children = []
+        self._children = []
         self._load = load
         self._name = name
 
@@ -317,7 +317,7 @@ class VarGroup(BaseVar):
             v._root = self._root
             v._parent = self
 
-            self.children.append(v)
+            self._children.append(v)
 
             if isinstance(v, VarGroup):
                 v._process()
@@ -337,7 +337,7 @@ class VarGroup(BaseVar):
     @property
     def _flat(self) -> List[FinalVar]:
         ret: List[FinalVar] = []
-        for c in self.children:
+        for c in self._children:
             if isinstance(c, VarGroup):
                 ret.extend(c._flat)
             elif isinstance(c, FinalVar):

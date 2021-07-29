@@ -103,11 +103,7 @@ class BaseVar(ABC, Generic[VarType]):
         if self._raw:
             return self._name
 
-        ret = (
-            f"{self._parent._fullname}.{self._name}"
-            if self._parent
-            else f"{self._root._name}.{self._name}"
-        )
+        ret = f"{self._parent._fullname}.{self._name}"
         return ret
 
 
@@ -457,6 +453,10 @@ class Environ(VarGroup):
     @property
     def errors(self) -> List[EnviumError]:
         return self._errors
+
+    @property
+    def _fullname(self) -> str:
+        return self._name
 
 
 def var(

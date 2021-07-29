@@ -55,7 +55,7 @@ class WrongTypeError(EnviumError):
         self.type_ = type_
         self.got_type = got_type
 
-        msg = f'Expected type "{type_.__name__}" for var "{var_name}" got "{got_type}"'
+        msg = f'Expected type "{type_.__name__}" for var "{var_name}" got "{got_type.__name__}"'
         super().__init__(msg)
 
 

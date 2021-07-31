@@ -1,20 +1,20 @@
 import envium
-from envium import VarGroup, var
+from envium import EnvGroup, env_var
 
 
 class Environ(envium.Environ):
-    class Db(VarGroup):
-        name: str = var()
-        user: str = var()
-        password: str = var()
-        host: str = var()
-        port: int = var()
+    class Db(EnvGroup):
+        name: str = env_var()
+        user: str = env_var()
+        password: str = env_var()
+        host: str = env_var()
+        port: int = env_var()
 
-    class Minio(VarGroup):
-        storage_endpoint: str = var()
-        access_key: str = var()
-        secret_key: str = var()
-        media_bucket_name: str = var()
+    class Minio(EnvGroup):
+        storage_endpoint: str = env_var()
+        access_key: str = env_var()
+        secret_key: str = env_var()
+        media_bucket_name: str = env_var()
 
     db = Db()
     minio = Minio()

@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "envium"
-version = "0.7.5"
+version = "0.8.0"
 description = ""
 authors = ["Damian Krystkiewicz <damian.krystkiewicz@gmail.com>"]
 
@@ -17,6 +17,7 @@ black = "^21.6b0"
 types-dataclasses = "^0.1.5"
 Jinja2 = "^3.0.1"
 isort = "^5.9.3"
+pytest-mock = "^3.6.1"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

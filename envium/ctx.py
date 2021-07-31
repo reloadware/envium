@@ -1,4 +1,6 @@
-from typing import TYPE_CHECKING, Any, Callable, Optional
+from typing import TYPE_CHECKING, Any, Callable, Optional, List
+
+from envium.exceptions import EnviumError
 
 if TYPE_CHECKING:
     pass
@@ -34,6 +36,10 @@ class Ctx(CtxGroup):
 
     def validate(self) -> None:
         self._validate()
+
+    @property
+    def errors(self) -> List[EnviumError]:
+        return self._errors
 
 
 def ctx_var(

@@ -131,7 +131,7 @@ class Environ(EnvGroup):
         return envs
 
     @property
-    def _errors(self) -> List[EnviumError]:
+    def errors(self) -> List[EnviumError]:
         ret: List[EnviumError] = []
         env_names = []
         for v in self._flat:

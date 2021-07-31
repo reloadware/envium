@@ -1,5 +1,7 @@
 from getpass import getpass
-from typing import TYPE_CHECKING, Any, Callable, Optional
+from typing import TYPE_CHECKING, Any, Callable, Optional, List
+
+from envium.exceptions import EnviumError
 
 if TYPE_CHECKING:
     pass
@@ -52,6 +54,10 @@ class Secrets(SecretsGroup):
             if s._value_from_input:
                 value = s._from_str(getpass(f"{s._fullname}: "))
                 setattr(s._parent, s._name, value)
+
+    @property
+    def errors(self) -> List[EnviumError]:
+        return self._errors
 
 
 def secret(

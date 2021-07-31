@@ -18,7 +18,7 @@ class EnvVar(Var):
 
     def __init__(
         self,
-        default: Optional[VarType] = None,
+        default: Optional[Any] = None,
         default_factory: Optional[Callable] = None,
         raw: bool = False,
     ) -> None:
@@ -148,7 +148,7 @@ class Environ(EnvGroup):
 
 
 def env_var(
-    default: Optional[VarType] = None,
+    default: Optional[Any] = None,
     raw: bool = False,
     default_factory: Optional[Callable] = None,
 ) -> Any:

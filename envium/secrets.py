@@ -1,5 +1,5 @@
 from getpass import getpass
-from typing import TYPE_CHECKING, Any, Callable, Optional, List
+from typing import TYPE_CHECKING, Any, Callable, List, Optional
 
 from envium.exceptions import EnviumError
 
@@ -14,7 +14,7 @@ __all__ = ["secret", "Secrets", "computed_secret", "SecretsGroup"]
 class SecretVar(Var):
     def __init__(
         self,
-        default: Optional[VarType] = None,
+        default: Optional[Any] = None,
         default_factory: Optional[Callable] = None,
         value_from_input: bool = True,
     ) -> None:
@@ -61,7 +61,7 @@ class Secrets(SecretsGroup):
 
 
 def secret(
-    default: Optional[VarType] = None,
+    default: Optional[Any] = None,
     default_factory: Optional[Callable] = None,
     value_from_input: bool = True,
 ) -> Any:

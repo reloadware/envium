@@ -1,0 +1,27 @@
+from typing import Optional
+
+import envium
+from envium import CtxGroup, ctx_var
+
+
+class Ctx(envium.Ctx):
+    class Db(CtxGroup):
+        name: str = ctx_var("database")
+        user: str = ctx_var()
+        password: str = ctx_var("password")
+        host: Optional[str] = ctx_var()
+        port: int = ctx_var()
+
+    class Minio(CtxGroup):
+        storage_endpoint: str = ctx_var()
+        access_key: str = ctx_var()
+        secret_key: str = ctx_var()
+        media_bucket_name: str = ctx_var()
+
+    db = Db()
+    minio = Minio()
+
+
+ctx = Ctx()
+
+secret_key = ctx.minio.secret_key

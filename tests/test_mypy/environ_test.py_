@@ -1,13 +1,15 @@
+from typing import Optional
+
 import envium
 from envium import EnvGroup, env_var
 
 
 class Environ(envium.Environ):
     class Db(EnvGroup):
-        name: str = env_var()
+        name: str = env_var("database")
         user: str = env_var()
-        password: str = env_var()
-        host: str = env_var()
+        password: str = env_var("password")
+        host: Optional[str] = env_var()
         port: int = env_var()
 
     class Minio(EnvGroup):
@@ -18,3 +20,8 @@ class Environ(envium.Environ):
 
     db = Db()
     minio = Minio()
+
+
+env = Environ(name="env")
+
+secret_key = env.minio.secret_key

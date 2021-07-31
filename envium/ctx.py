@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Any, Callable, Optional, List
+from typing import TYPE_CHECKING, Any, Callable, List, Optional
 
 from envium.exceptions import EnviumError
 
@@ -43,7 +43,7 @@ class Ctx(CtxGroup):
 
 
 def ctx_var(
-    default: Optional[VarType] = None,
+    default: Optional[Any] = None,
     default_factory: Optional[Callable] = None,
 ) -> Any:
     return CtxVar(default=default, default_factory=default_factory)

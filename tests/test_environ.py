@@ -6,13 +6,13 @@ from typing import Optional
 from pytest import raises
 
 from tests import facade, utils
-from tests.facade import Environ, VarGroup, var
+from tests.facade import EnvGroup, Environ, env_var
 
 
 class TestMisc:
     def test_basic(self):
         class Env(Environ):
-            test_var: str = facade.var()
+            test_var: str = env_var()
 
         env = Env(name="env")
 
@@ -23,14 +23,14 @@ class TestMisc:
 
     def test_no_name(self):
         class Env(Environ):
-            test_var: str = facade.var()
+            test_var: str = env_var()
 
         with raises(facade.EnviumError):
             env = Env(name="")
 
     def test_raw(self):
         class Env(Environ):
-            test_var: str = facade.var(raw=True)
+            test_var: str = env_var(raw=True)
 
         env = Env(name="env")
 
@@ -41,7 +41,7 @@ class TestMisc:
 
     def test_non_optional_default(self):
         class Env(Environ):
-            test_var: str = facade.var(default="Cake")
+            test_var: str = env_var(default="Cake")
 
         env = Env(name="env")
         assert env.test_var == "Cake"
@@ -49,15 +49,15 @@ class TestMisc:
 
     def test_optional_no_value(self):
         class Env(Environ):
-            test_var: Optional[str] = facade.var()
+            test_var: Optional[str] = env_var()
 
         env = Env(name="env")
         assert env.get_env_vars() == {"ENV_TESTVAR": "None"}
 
     def test_optional_no_value_in_group(self):
         class Env(Environ):
-            class Group(VarGroup):
-                test_var: Optional[str] = facade.var()
+            class Group(EnvGroup):
+                test_var: Optional[str] = env_var()
 
             group = Group()
 
@@ -66,11 +66,11 @@ class TestMisc:
 
     def test_nested(self):
         class Env(Environ):
-            class Python(VarGroup):
-                version: str = var()
-                name: str = var()
+            class Python(EnvGroup):
+                version: str = env_var()
+                name: str = env_var()
 
-            test_var: str = var()
+            test_var: str = env_var()
             python = Python()
 
         env = Env(name="env")
@@ -90,11 +90,11 @@ class TestMisc:
 
     def test_raw_in_nested(self):
         class Env(Environ):
-            class Python(VarGroup):
-                version: str = var(raw=True)
-                name: str = var()
+            class Python(EnvGroup):
+                version: str = env_var(raw=True)
+                name: str = env_var()
 
-            test_var: str = var(raw=True)
+            test_var: str = env_var(raw=True)
             python = Python()
 
         env = Env(name="env")
@@ -114,15 +114,15 @@ class TestMisc:
 
     def test_double_nested(self):
         class Env(Environ):
-            class Python(VarGroup):
-                class Version(VarGroup):
-                    minor: str = var()
-                    major: str = var()
+            class Python(EnvGroup):
+                class Version(EnvGroup):
+                    minor: str = env_var()
+                    major: str = env_var()
 
                 version = Version()
-                name: str = var()
+                name: str = env_var()
 
-            test_var: str = var()
+            test_var: str = env_var()
             python = Python()
 
         env = Env(name="env")
@@ -145,9 +145,9 @@ class TestMisc:
 
     def test_raw_group(self):
         class Env(Environ):
-            class Python(VarGroup):
-                version: str = var()
-                name: str = var()
+            class Python(EnvGroup):
+                version: str = env_var()
+                name: str = env_var()
 
             python = Python(raw=True)
 
@@ -166,13 +166,13 @@ class TestMisc:
 
     def test_raw_nested_group(self):
         class Env(Environ):
-            class Python(VarGroup):
-                class Version(VarGroup):
-                    minor: str = var()
-                    major: str = var()
+            class Python(EnvGroup):
+                class Version(EnvGroup):
+                    minor: str = env_var()
+                    major: str = env_var()
 
                 version = Version(raw=True)
-                name: str = var()
+                name: str = env_var()
 
             python = Python()
 
@@ -193,7 +193,7 @@ class TestMisc:
 
     def test_path(self):
         class Env(Environ):
-            test_var: Path = facade.var(Path("my_path/child"))
+            test_var: Path = env_var(Path("my_path/child"))
 
         env = Env(name="env")
 
@@ -207,7 +207,7 @@ class TestComputed:
             def fget(self) -> str:
                 return "computed"
 
-            test_var: str = facade.computed_var(fget=fget)
+            test_var: str = facade.computed_env_var(fget=fget)
 
         env = Env(name="env")
 
@@ -221,7 +221,7 @@ class TestComputed:
             def fset(self, value) -> None:
                 self.test_var._value = value * 2
 
-            test_var: str = facade.computed_var(fset=fset)
+            test_var: str = facade.computed_env_var(fset=fset)
 
         env = Env(name="env")
 
@@ -238,7 +238,7 @@ class TestComputed:
                 self.cakes_n._value -= 1
                 return 1.0 / self.cakes_n._value
 
-            cakes_n: float = facade.computed_var(fget=fget)
+            cakes_n: float = facade.computed_env_var(fget=fget)
 
         env = Env(name="env")
         utils.assert_errors(
@@ -254,15 +254,15 @@ class TestComputed:
 class TestLoading:
     def test_basic(self, sandbox, env_sandbox):
         class Env(Environ):
-            class Python(VarGroup):
-                class Version(VarGroup):
-                    minor: str = var("6")
-                    major: str = var(default="3")
+            class Python(EnvGroup):
+                class Version(EnvGroup):
+                    minor: str = env_var("6")
+                    major: str = env_var(default="3")
 
                 version = Version()
-                name: str = var(default="Python")
+                name: str = env_var(default="Python")
 
-            test_var: str = var(raw=True, default="test_var")
+            test_var: str = env_var(raw=True, default="test_var")
             python = Python()
 
         os.environ["ENV_PYTHON_VERSION_MINOR"] = "8"
@@ -277,7 +277,7 @@ class TestLoading:
 
     def test_path(self, sandbox, env_sandbox):
         class Env(Environ):
-            test_var: Path = var()
+            test_var: Path = env_var()
 
         os.environ["ENV_TESTVAR"] = "test_path/child"
 
@@ -286,7 +286,7 @@ class TestLoading:
 
     def test_non_optional(self, sandbox, env_sandbox):
         class Env(Environ):
-            test_var: Path = var()
+            test_var: Path = env_var()
 
         with raises(facade.ValidationErrors):
             env = Env(name="env", load=True)
@@ -295,7 +295,7 @@ class TestLoading:
         os.environ["ENV_TESTVAR"] = "False"
 
         class Env(Environ):
-            test_var: bool = var(default=False)
+            test_var: bool = env_var(default=False)
 
         env = Env(name="env", load=True)
         assert env.test_var is False
@@ -304,7 +304,7 @@ class TestLoading:
         os.environ["ENV_TESTVAR"] = "None"
 
         class Env(Environ):
-            test_var: Optional[str] = facade.var()
+            test_var: Optional[str] = env_var()
 
         env = Env(name="env", load=True)
         assert env.test_var is None
@@ -314,15 +314,15 @@ class TestLoading:
 class TestDumping:
     def test_basic(self, sandbox):
         class Env(Environ):
-            class Python(VarGroup):
-                class Version(VarGroup):
-                    minor: str = var(default="6")
-                    major: str = var(default="3")
+            class Python(EnvGroup):
+                class Version(EnvGroup):
+                    minor: str = env_var(default="6")
+                    major: str = env_var(default="3")
 
                 version = Version()
-                name: str = var(default="Python")
+                name: str = env_var(default="Python")
 
-            test_var: str = var(default="test_var")
+            test_var: str = env_var(default="test_var")
             python = Python()
 
         env = Env(name="env")
@@ -345,7 +345,7 @@ class TestDumping:
 class TestValidation:
     def test_non_optional_no_value(self):
         class Env(Environ):
-            test_var: str = facade.var()
+            test_var: str = env_var()
 
         env = Env(name="env")
 
@@ -353,14 +353,14 @@ class TestValidation:
 
     def test_no_type(self):
         class Env(Environ):
-            test_var = facade.var(default="Cake")
+            test_var = env_var(default="Cake")
 
         env = Env(name="env")
         utils.assert_errors(env._errors, [facade.NoTypeError("env.test_var")])
 
     def test_wrong_type(self):
         class Env(Environ):
-            test_var: int = facade.var(default="Cake")
+            test_var: int = env_var(default="Cake")
 
         env = Env(name="env")
         utils.assert_errors(
@@ -369,19 +369,19 @@ class TestValidation:
 
     def test_raises_validation_error(self):
         class Env(Environ):
-            test_var: int = facade.var(default="Cake")
+            test_var: int = env_var(default="Cake")
 
         env = Env(name="env")
         with raises(facade.ValidationErrors):
             env.validate()
 
-    def test_redefined_var(self):
+    def env_var(self):
         class Env(Environ):
-            class Python(VarGroup):
-                name: str = var(raw=True, default="Python")
+            class Python(EnvGroup):
+                name: str = env_var(raw=True, default="Python")
 
             python = Python()
-            name: str = var(raw=True, default="MyEnv")
+            name: str = env_var(raw=True, default="MyEnv")
 
         env = Env(name="env")
         assert env.python.name == "Python"

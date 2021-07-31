@@ -2,6 +2,7 @@ import os
 import shutil
 import sys
 from pathlib import Path
+from typing import Any, List
 
 from pytest import fixture
 
@@ -34,3 +35,9 @@ def env_sandbox() -> Path:
 
     yield
     os.environ = environ_before
+
+
+@fixture
+def mock_getpass(mocker) -> List[Any]:
+    ret = mocker.patch("envium.secrets.getpass").side_effect = []
+    return ret

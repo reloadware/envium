@@ -20,6 +20,38 @@ class TestMisc:
 
         ctx.validate()
 
+    def test_shadowing(self):
+        class BaseContext(Ctx):
+            name: str = ctx_var()
+
+        class Context(BaseContext):
+            name: str = ctx_var("Cake")
+
+        ctx = Context()
+        assert ctx.name == "Cake"
+
+        ctx.validate()
+
+    def test_group_assignment(self):
+        class CakeCtx(Ctx):
+            flavour: str = ctx_var()
+
+        class CakeshopCtx(Ctx):
+            class StorageCtx(CtxGroup):
+                cake = CakeCtx()
+
+            storage = StorageCtx()
+            cake = CakeCtx()
+
+        cakeshop_ctx = CakeshopCtx()
+        cakeshop_ctx.storage.cake.flavour = "Caramel"
+
+        cakeshop_ctx.cake = cakeshop_ctx.storage.cake
+
+        assert cakeshop_ctx.cake.flavour == "Caramel"
+
+        cakeshop_ctx.validate()
+
     def test_no_name(self):
         class Context(Ctx):
             test_var: str = ctx_var("Cake")

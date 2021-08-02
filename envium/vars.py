@@ -218,6 +218,8 @@ class VarGroup(BaseVar[VarType]):
                 setattr(self, f, deepcopy(attr))
 
     def _process(self) -> None:
+        self._children.clear()
+
         annotations = [
             c.__annotations__
             for c in self.__class__.__mro__
@@ -274,8 +276,13 @@ class VarGroup(BaseVar[VarType]):
                 ret.append(c)
 
         ret = sorted(ret, key=lambda x: x._fullname)
-
         return ret
+
+    def _recursive_assignment(self, var_group: "VarGroup") -> None:
+        for l, r in zip(self._children, var_group._children):
+            if isinstance(l, VarGroup):
+                l._recursive_assignment(r)
+            l._value = r._value
 
     def __setattr__(self, key: str, value: Any) -> None:
         if not hasattr(self, key):
@@ -283,6 +290,14 @@ class VarGroup(BaseVar[VarType]):
             return
 
         attr = object.__getattribute__(self, key)
+
+        if (
+            isinstance(attr, VarGroup)
+            and isinstance(value, VarGroup)
+            and (type(attr) is type(value))
+        ):
+            attr._recursive_assignment(value)
+            return
 
         if not isinstance(attr, FinalVar):
             object.__setattr__(self, key, value)

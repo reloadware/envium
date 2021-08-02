@@ -33,6 +33,7 @@ class Ctx(CtxGroup):
         super().__init__(name=name)
         self._root = self
         self._process()
+        a = 1
 
     def validate(self) -> None:
         self._validate()

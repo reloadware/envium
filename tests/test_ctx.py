@@ -46,7 +46,7 @@ class TestMisc:
         cakeshop_ctx = CakeshopCtx()
         cakeshop_ctx.storage.cake.flavour = "Caramel"
 
-        cakeshop_ctx.cake = cakeshop_ctx.storage.cake
+        cakeshop_ctx.cake.copy_from(cakeshop_ctx.storage.cake)
 
         assert cakeshop_ctx.cake.flavour == "Caramel"
 

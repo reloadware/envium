@@ -278,10 +278,10 @@ class VarGroup(BaseVar[VarType]):
         ret = sorted(ret, key=lambda x: x._fullname)
         return ret
 
-    def _recursive_assignment(self, var_group: "VarGroup") -> None:
+    def copy_from(self, var_group: "VarGroup") -> None:
         for l, r in zip(self._children, var_group._children):
             if isinstance(l, VarGroup):
-                l._recursive_assignment(r)
+                l.copy_from(r)
             l._value = r._value
 
     def __setattr__(self, key: str, value: Any) -> None:
@@ -290,14 +290,6 @@ class VarGroup(BaseVar[VarType]):
             return
 
         attr = object.__getattribute__(self, key)
-
-        if (
-            isinstance(attr, VarGroup)
-            and isinstance(value, VarGroup)
-            and (type(attr) is type(value))
-        ):
-            attr._recursive_assignment(value)
-            return
 
         if not isinstance(attr, FinalVar):
             object.__setattr__(self, key, value)

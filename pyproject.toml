@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "envium"
-version = "0.8.5"
+version = "0.8.6"
 description = ""
 authors = ["Damian Krystkiewicz <damian.krystkiewicz@gmail.com>"]
 

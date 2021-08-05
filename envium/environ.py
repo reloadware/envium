@@ -39,7 +39,7 @@ class EnvVar(Var):
             env_value = None if env_value == "None" else env_value
             self._value = self._from_str(env_value) if env_value else None
 
-        if not self._value:
+        if self._value is None:
             self._value = self._default
 
     def _get_env_name(self) -> str:

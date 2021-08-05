@@ -295,7 +295,7 @@ class TestLoading:
         os.environ["ENV_TESTVAR"] = "False"
 
         class Env(Environ):
-            test_var: bool = env_var(default=False)
+            test_var: bool = env_var(default=True)
 
         env = Env(name="env", load=True)
         assert env.test_var is False

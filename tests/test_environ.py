@@ -154,7 +154,6 @@ class TestMisc:
         env = Env(name="env")
         env.python.version = "3.8.2"
         env.python.name = "python"
-        env.test_var = "Cake"
 
         assert env.python.version == "3.8.2"
         assert env.python.name == "python"

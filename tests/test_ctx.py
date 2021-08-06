@@ -139,6 +139,17 @@ class TestMisc:
 
         ctx.validate()
 
+    def test_wrong_attr(self):
+        class Context(Ctx):
+            test_var: Path = ctx_var(Path("my_path/child"))
+
+        ctx = Context(name="ctx")
+
+        with raises(facade.UndefinedVarError):
+            ctx.test_vars = 132
+
+        ctx.validate()
+
 
 class TestComputed:
     def test_fget(self):

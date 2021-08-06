@@ -1,26 +1,4 @@
-import inspect
-import os
-
-# Python >= 3.8
-import typing
-from abc import ABC, abstractmethod
-from copy import deepcopy
-from pathlib import Path
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    Callable,
-    ClassVar,
-    Dict,
-    Generic,
-    List,
-    Optional,
-    Tuple,
-    Type,
-    TypeVar,
-    Union,
-    cast,
-)
+from typing import List, Type
 
 
 class EnviumError(Exception):
@@ -63,6 +41,13 @@ class ComputedVarError(EnviumError):
     def __init__(self, var_name: str, exception: Exception) -> None:
         self.var_name = var_name
         msg = f'During computing "{var_name}" following error occured: \n{repr(exception)}'
+        super().__init__(msg)
+
+
+class UndefinedVarError(EnviumError):
+    def __init__(self, parent_fullname: str, var_name: str) -> None:
+        self.var_name = var_name
+        msg = f'Var grup "{parent_fullname}" does not have var "{var_name}"'
         super().__init__(msg)
 
 

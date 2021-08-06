@@ -28,6 +28,7 @@ from envium.exceptions import (
     NoTypeError,
     NoValueError,
     RedefinedVarError,
+    UndefinedVarError,
     ValidationErrors,
     WrongTypeError,
 )
@@ -51,11 +52,13 @@ class BaseVar(ABC, Generic[VarType]):
     _root: Optional["VarGroup"]
     _parent: Optional["BaseVar"]
     _name: str
+    _ready: bool
 
     def __init__(self) -> None:
         self._root = None
         self._parent = None
         self._name = ""
+        self._ready = False
 
     @property
     def _fullname(self) -> str:
@@ -77,7 +80,6 @@ class FinalVar(BaseVar, ABC, Generic[VarType]):
         self._type_ = None
         self._optional = False
         self._value = None
-        self._ready = False
 
     @abstractmethod
     def _init_value(self) -> None:
@@ -265,6 +267,8 @@ class VarGroup(BaseVar[VarType]):
 
             v._ready = True
 
+        self._ready = True
+
     @property
     def _flat(self) -> List[VarType]:
         ret: List[VarType] = []
@@ -286,6 +290,8 @@ class VarGroup(BaseVar[VarType]):
 
     def __setattr__(self, key: str, value: Any) -> None:
         if not hasattr(self, key):
+            if hasattr(self, "_ready") and self._ready:
+                raise UndefinedVarError(parent_fullname=self._fullname, var_name=key)
             object.__setattr__(self, key, value)
             return
 
@@ -298,8 +304,8 @@ class VarGroup(BaseVar[VarType]):
         if not attr._ready:
             object.__setattr__(self, key, value)
             return
-
-        attr._set_value(value)
+        else:
+            attr._set_value(value)
 
     def __getattribute__(self, item: str) -> Any:
         attr = object.__getattribute__(self, item)

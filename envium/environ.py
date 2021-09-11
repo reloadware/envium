@@ -2,6 +2,7 @@ import os
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Union
 
+from envium import comp
 from envium.exceptions import EnviumError, RedefinedVarError
 
 if TYPE_CHECKING:
@@ -124,7 +125,11 @@ class Environ(EnvGroup):
         envs = {}
         for v in self._flat:
             name = v._get_env_name()
-            envs[name] = str(v._get_value())
+            value = v._get_value()
+            if isinstance(value, list):
+                envs[name] = comp.list_delimiter.join(value)
+            else:
+                envs[name] = str(value)
 
         envs = {k.upper(): v for k, v in envs.items()}
 

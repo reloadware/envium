@@ -42,7 +42,7 @@ class EnviumCommEnv(Env, VirtualEnv):
 
     pip_ver: str
     poetry_ver: str
-    envo_ver = "0.9.9.13"
+    envo_ver = "1.0.5"
     supported_versions = [
         PythonVersion("3.6"),
         PythonVersion("3.7"),

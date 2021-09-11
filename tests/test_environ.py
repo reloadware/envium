@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
 from textwrap import dedent
-from typing import Optional, List
+from typing import List, Optional
 
 from pytest import raises
 
@@ -217,6 +217,15 @@ class TestMisc:
         assert env.test_var == ["1", "2"]
         env.validate()
 
+    def test_list(self):
+        class Env(Environ):
+            test_var: List[str] = env_var()
+
+        env = Env(name="env")
+
+        env.test_var = ["1", "2"]
+        assert env.get_env_vars() == {"ENV_TESTVAR": "1:2"}
+
 
 class TestComputed:
     def test_fget(self):
@@ -336,13 +345,15 @@ class TestLoading:
         assert env.test_var is None
         assert env.get_env_vars() == {"ENV_TESTVAR": "None"}
 
-    def test_default_factory(self):
+    def test_list(self):
+        os.environ["ENV_TESTVAR"] = "first:second"
+
         class Env(Environ):
-            test_var: List[str] = env_var(default_factory=lambda: ["1", "2"])
+            test_var: List[str] = env_var()
 
-        env = Env(name="ctx", load=True)
+        env = Env(name="env", load=True)
 
-        assert env.test_var == ["1", "2"]
+        assert env.test_var == ["first", "second"]
 
 
 class TestDumping:

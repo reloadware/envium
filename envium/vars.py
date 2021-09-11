@@ -22,6 +22,7 @@ from typing import (
     cast,
 )
 
+from envium import comp
 from envium.exceptions import (
     ComputedVarError,
     EnviumError,
@@ -45,6 +46,18 @@ except AttributeError:
 __all__ = ["VarGroup"]
 
 VarType = TypeVar("VarType", bound="FinalVar")
+
+
+def get_type_class(typ) -> Any:
+    try:
+        # Python 3.5 / 3.6
+        return typ.__extra__
+    except AttributeError:
+        # Python 3.7
+        if hasattr(typ, "__origin__"):
+            return typ.__origin__
+        else:
+            return typ
 
 
 class BaseVar(ABC, Generic[VarType]):
@@ -153,8 +166,11 @@ class Var(FinalVar, Generic[VarType]):
         return super()._get_errors() + ret
 
     def _from_str(self, env_value: str) -> VarType:
+        ret: Any
         if self._type_ is bool:
             ret = env_value == "True"
+        elif issubclass(get_type_class(self._type_), list):
+            ret = env_value.split(comp.list_delimiter)
         else:
             ret = self._type_(env_value)
 

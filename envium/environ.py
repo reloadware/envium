@@ -127,7 +127,7 @@ class Environ(EnvGroup):
             name = v._get_env_name()
             value = v._get_value()
             if isinstance(value, list):
-                envs[name] = comp.list_delimiter.join(value)
+                envs[name] = comp.list_delimiter.join([str(v) for v in value])
             else:
                 envs[name] = str(value)
 

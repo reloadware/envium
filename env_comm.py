@@ -35,6 +35,9 @@ class EnviumCommEnv(Env, VirtualEnv):
     class Environ(Env.Environ, VirtualEnv.Environ):
         ...
 
+    class Ctx(Env.Ctx, VirtualEnv.Ctx):
+        ...
+
     e: Environ
 
     pip_ver: str
@@ -55,6 +58,7 @@ class EnviumCommEnv(Env, VirtualEnv):
 
     @p.command
     def bootstrap(self) -> None:
+        run("rm -rf .venv")
         run(f"pip install pip=={self.pip_ver}")
         run(f"pip install poetry=={self.poetry_ver}")
         run("poetry config virtualenvs.create true")

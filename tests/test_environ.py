@@ -220,11 +220,16 @@ class TestMisc:
     def test_list(self):
         class Env(Environ):
             test_var: List[str] = env_var()
+            test_path: List[Path] = env_var()
 
         env = Env(name="env")
 
         env.test_var = ["1", "2"]
-        assert env.get_env_vars() == {"ENV_TESTVAR": "1:2"}
+        env.test_path = [Path("home/user"), Path("home/user2")]
+        assert env.get_env_vars() == {
+            "ENV_TESTVAR": "1:2",
+            "ENV_TESTPATH": "home/user:home/user2",
+        }
 
 
 class TestComputed:

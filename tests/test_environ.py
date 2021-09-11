@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
 from textwrap import dedent
-from typing import Optional
+from typing import Optional, List
 
 from pytest import raises
 
@@ -44,6 +44,15 @@ class TestMisc:
             test_var: str = env_var(default="Cake")
 
         env = Env(name="env")
+        assert env.test_var == "Cake"
+        assert env.get_env_vars() == {"ENV_TESTVAR": "Cake"}
+
+    def test_non_optional_set(self):
+        class Env(Environ):
+            test_var: str = env_var()
+
+        env = Env(name="env")
+        env.test_var = "Cake"
         assert env.test_var == "Cake"
         assert env.get_env_vars() == {"ENV_TESTVAR": "Cake"}
 
@@ -199,6 +208,15 @@ class TestMisc:
         assert env.test_var == Path("my_path/child")
         assert env.get_env_vars() == {"ENV_TESTVAR": "my_path/child"}
 
+    def test_default_factory(self):
+        class Env(Environ):
+            test_var: List[str] = env_var(default_factory=lambda: ["1", "2"])
+
+        env = Env(name="ctx")
+
+        assert env.test_var == ["1", "2"]
+        env.validate()
+
 
 class TestComputed:
     def test_fget(self):
@@ -299,6 +317,15 @@ class TestLoading:
         env = Env(name="env", load=True)
         assert env.test_var is False
 
+    def test_str(self, sandbox, env_sandbox):
+        os.environ["ENV_DEFAULTCAKE"] = "Crepe"
+
+        class Env(Environ):
+            default_cake: str = env_var()
+
+        env = Env(name="env", load=True)
+        assert env.default_cake == "Crepe"
+
     def test_optional_no_value(self, env_sandbox):
         os.environ["ENV_TESTVAR"] = "None"
 
@@ -308,6 +335,14 @@ class TestLoading:
         env = Env(name="env", load=True)
         assert env.test_var is None
         assert env.get_env_vars() == {"ENV_TESTVAR": "None"}
+
+    def test_default_factory(self):
+        class Env(Environ):
+            test_var: List[str] = env_var(default_factory=lambda: ["1", "2"])
+
+        env = Env(name="ctx", load=True)
+
+        assert env.test_var == ["1", "2"]
 
 
 class TestDumping:

@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
 from textwrap import dedent
-from typing import Optional
+from typing import Optional, List
 
 from pytest import raises
 
@@ -147,6 +147,16 @@ class TestMisc:
 
         with raises(facade.UndefinedVarError):
             ctx.test_vars = 132
+
+        ctx.validate()
+
+    def test_default_factory(self):
+        class Context(Ctx):
+            test_var: List[str] = ctx_var(default_factory=lambda: ["1", "2"])
+
+        ctx = Context(name="ctx")
+
+        assert ctx.test_var == ["1", "2"]
 
         ctx.validate()
 

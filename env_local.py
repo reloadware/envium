@@ -98,6 +98,7 @@ class EnviumLocalEnv(ParentEnv):
 
     @p.command
     def bootstrap(self) -> None:
+        run("rm .venv -rf")
         path_before = os.environ["PATH"]
         os.environ[
             "PATH"

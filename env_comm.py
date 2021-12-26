@@ -53,7 +53,7 @@ class EnviumCommEnv(Env, VirtualEnv):
     def init(self) -> None:
         super().init()
         self.pip_ver = "21.0.1"
-        self.poetry_ver = "1.1.7"
+        self.poetry_ver = "1.1.11"
         self.black_ver = "21.6b0"
 
     @p.command

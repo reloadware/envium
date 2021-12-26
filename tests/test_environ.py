@@ -231,6 +231,35 @@ class TestMisc:
             "ENV_TESTPATH": "home/user:home/user2",
         }
 
+    def test_hyphen_in_env_name(self):
+        class Env(Environ):
+            test_var: List[str] = env_var()
+
+        env = Env(name="my-env")
+
+        env.test_var = "Cake"
+        assert env.get_env_vars() == {
+            "MYENV_TESTVAR": "Cake",
+        }
+
+    def test_no_value(self):
+        class Env(Environ):
+            test_var: List[str] = env_var()
+            test_path: List[Path] = env_var()
+
+        env = Env(name="env")
+
+        env.test_var = "Cake"
+        with raises(expected_exception=facade.ValidationErrors) as e:
+            env.get_env_vars()
+
+        assert len(e.value.errors) == 1
+        assert isinstance(e.value.errors[0], facade.NoValueError)
+        assert (
+            e.value.errors[0].args[0]
+            == 'Expected value of type "typing.List[pathlib.Path]" for var "env.test_path" not None'
+        )
+
 
 class TestComputed:
     def test_fget(self):
@@ -383,11 +412,11 @@ class TestDumping:
             env_path.read_text()
             == dedent(
                 """
-            ENV_PYTHON_NAME="Python"
-            ENV_PYTHON_VERSION_MAJOR="3"
-            ENV_PYTHON_VERSION_MINOR="6"
-            ENV_TESTVAR="test_var"
-            """
+        ENV_PYTHON_NAME="Python"
+        ENV_PYTHON_VERSION_MAJOR="3"
+        ENV_PYTHON_VERSION_MINOR="6"
+        ENV_TESTVAR="test_var"
+        """
             ).strip()
         )
 

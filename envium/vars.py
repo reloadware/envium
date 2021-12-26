@@ -347,16 +347,3 @@ class VarGroup(BaseVar[VarType]):
 
         if errors:
             raise ValidationErrors(errors)
-
-    def _dump(self, path: Union[Path, str]) -> None:
-        path = Path(path)
-
-        if not path.parent.exists():
-            path.parent.mkdir(parents=True)
-
-        path.touch(exist_ok=True)
-
-        content = "\n".join(
-            [f'{key}="{value}"' for key, value in self._root._get_env_vars().items()]
-        )
-        path.write_text(content, "utf-8")

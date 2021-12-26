@@ -18,7 +18,9 @@ class WrongTypeError(EnviumError):
         self.type_ = type_
         self.got_type = got_type
 
-        msg = f'Expected type "{type_.__name__}" for var "{var_name}" got "{got_type.__name__}"'
+        msg = (
+            f'Expected type "{repr(type_)}" for var "{var_name}" got "{repr(got_type)}"'
+        )
         super().__init__(msg)
 
 
@@ -33,7 +35,7 @@ class NoValueError(EnviumError):
     def __init__(self, var_name: str, type_: Type) -> None:
         self.var_name = var_name
         self.type_ = type_
-        msg = f'Expected value of type "{type_.__name__}" for var "{var_name}" not None'
+        msg = f'Expected value of type "{repr(type_)}" for var "{var_name}" not None'
         super().__init__(msg)
 
 

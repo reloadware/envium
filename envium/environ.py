@@ -48,7 +48,7 @@ class EnvVar(Var):
             ret = self._name
         else:
             ret = self._fullname
-            ret = ret.replace("_", "").replace(".", "_")
+            ret = ret.replace("_", "").replace(".", "_").replace("-", "")
 
         ret = ret.upper()
 
@@ -86,6 +86,19 @@ class EnvGroup(VarGroup[EnvVar]):
 
         ret = super()._fullname
         return ret
+
+    def _dump(self, path: Union[Path, str]) -> None:
+        path = Path(path)
+
+        if not path.parent.exists():
+            path.parent.mkdir(parents=True)
+
+        path.touch(exist_ok=True)
+
+        content = "\n".join(
+            [f'{key}="{value}"' for key, value in self._root._get_env_vars().items()]
+        )
+        path.write_text(content, "utf-8")
 
 
 class Environ(EnvGroup):

@@ -245,7 +245,7 @@ class VarGroup(BaseVar[VarType]):
         ]
         flat_annotations = {}
 
-        for a in annotations:
+        for a in reversed(annotations):
             flat_annotations.update(a)
 
         for n in dir(self):

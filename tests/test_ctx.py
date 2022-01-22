@@ -32,6 +32,16 @@ class TestMisc:
 
         ctx.validate()
 
+    def test_shadowing_optional(self):
+        class BaseContext(Ctx):
+            name: str = ctx_var()
+
+        class Context(BaseContext):
+            name: Optional[str] = ctx_var()
+
+        ctx = Context()
+        ctx.validate()
+
     def test_group_assignment(self):
         class CakeCtx(Ctx):
             flavour: str = ctx_var()

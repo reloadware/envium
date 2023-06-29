@@ -42,7 +42,7 @@ class TestMisc:
         ctx = Context()
         ctx.validate()
 
-    def test_group_assignment(self):
+    def test_copy_from(self):
         class CakeCtx(Ctx):
             flavour: str = ctx_var()
 
@@ -61,6 +61,61 @@ class TestMisc:
         assert cakeshop_ctx.cake.flavour == "Caramel"
 
         cakeshop_ctx.validate()
+
+    def test_copy_from_default(self):
+        class CakeCtx(Ctx):
+            flavour: str = ctx_var("matcha")
+
+        cake1 = CakeCtx()
+
+        cake2 = CakeCtx()
+        cake2.flavour = "wrong"
+
+        cake2.copy_from(cake1)
+        cake2.validate()
+
+        assert cake2.flavour == "matcha"
+
+    def test_groups_not_shared(self):
+        class CakeshopCtx(Ctx):
+            class CakeCtx(CtxGroup):
+                flavour: str = ctx_var()
+
+            cake = CakeCtx()
+
+        cakeshop1_ctx = CakeshopCtx()
+        cakeshop1_ctx.cake.flavour = "Caramel"
+
+        cakeshop2_ctx = CakeshopCtx()
+        cakeshop2_ctx.cake.flavour = "Matcha"
+
+        cakeshop1_ctx.validate()
+        cakeshop2_ctx.validate()
+
+        assert cakeshop1_ctx.cake.flavour == "Caramel"
+        assert cakeshop2_ctx.cake.flavour == "Matcha"
+
+    def test_groups_not_shared_2(self):
+        class CakeshopCtx(Ctx):
+            class CakeCtx(CtxGroup):
+                class FlavourCtx(CtxGroup):
+                    name: str = ctx_var()
+
+                flavour = FlavourCtx()
+
+            cake = CakeCtx()
+
+        cakeshop1_ctx = CakeshopCtx()
+        cakeshop1_ctx.cake.flavour.name = "Caramel"
+
+        cakeshop2_ctx = CakeshopCtx()
+        cakeshop2_ctx.cake.flavour.name = "Matcha"
+
+        cakeshop1_ctx.validate()
+        cakeshop2_ctx.validate()
+
+        assert cakeshop1_ctx.cake.flavour.name == "Caramel"
+        assert cakeshop2_ctx.cake.flavour.name == "Matcha"
 
     def test_no_name(self):
         class Context(Ctx):

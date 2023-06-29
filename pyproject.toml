@@ -1,23 +1,22 @@
 [tool.poetry]
 name = "envium"
-version = "1.0.1"
+version = "1.0.2"
 description = ""
 authors = ["Damian Krystkiewicz <damian.krystkiewicz@gmail.com>"]
 
 [tool.poetry.dependencies]
-python = "^3.6.2"
+python = "^3.8"
 
 [tool.poetry.dev-dependencies]
-pytest = "^6.2.4"
+pytest = "^7.4.0"
 toml = "^0.10.2"
-dataclasses = { version = "*", python = ">=3.6, <3.7" }
 pytest-cov = "^2.12.1"
-mypy = "^0.910"
-black = "^21.6b0"
-types-dataclasses = "^0.1.5"
+mypy = "^1.4.1"
+black = "^23.3.0"
+types-dataclasses = "^0.6.6"
 Jinja2 = "^3.0.1"
-isort = "^5.9.3"
-pytest-mock = "^3.6.1"
+isort = "^5.12.0"
+pytest-mock = "^3.11.1"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

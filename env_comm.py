@@ -17,15 +17,6 @@ from envo import Env, Namespace, VirtualEnv, inject, run
 p = Namespace("p")
 
 
-@dataclass
-class PythonVersion:
-    ver: str
-
-    @property
-    def id(self) -> str:
-        return self.ver.replace(".", "-")
-
-
 class EnviumCommEnv(Env, VirtualEnv):
     class Meta(Env.Meta):
         root: Path = root
@@ -42,18 +33,13 @@ class EnviumCommEnv(Env, VirtualEnv):
 
     pip_ver: str
     poetry_ver: str
-    envo_ver = "1.0.5"
-    supported_versions = [
-        PythonVersion("3.6"),
-        PythonVersion("3.7"),
-        PythonVersion("3.8"),
-        PythonVersion("3.9"),
-    ]
+    envo_ver = "1.2.9"
+    supported_versions = ["3.8", "3.9", "3.10", "3.11"]
 
     def init(self) -> None:
         super().init()
-        self.pip_ver = "21.0.1"
-        self.poetry_ver = "1.1.11"
+        self.pip_ver = "23.1.2"
+        self.poetry_ver = "1.5.1"
         self.black_ver = "21.6b0"
 
     @p.command

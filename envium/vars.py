@@ -168,7 +168,7 @@ class Var(FinalVar, Generic[VarType]):
     def _from_str(self, env_value: str) -> VarType:
         ret: Any
         if self._type_ is bool:
-            ret = env_value == "True"
+            ret = env_value in ("True", "true")
         elif issubclass(get_type_class(self._type_), list):
             ret = env_value.split(comp.list_delimiter)
         else:
@@ -299,10 +299,19 @@ class VarGroup(BaseVar[VarType]):
         return ret
 
     def copy_from(self, var_group: "VarGroup") -> None:
-        for l, r in zip(self._children, var_group._children):
+        left = {v._name: v for v in self._children}
+        right = {v._name: v for v in var_group._children}
+
+        for k, l in left.items():
+            r = right.get(k)
+
+            if l.__class__ is not r.__class__:
+                continue
+
             if isinstance(l, VarGroup):
                 l.copy_from(r)
-            l._value = r._value
+            else:
+                l._value = r._value
 
     def __setattr__(self, key: str, value: Any) -> None:
         if not hasattr(self, key):

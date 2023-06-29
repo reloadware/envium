@@ -73,6 +73,22 @@ class TestMisc:
         env = Env(name="env")
         assert env.get_env_vars() == {"ENV_GROUP_TESTVAR": "None"}
 
+    def test_multiline(self, sandbox, env_sandbox):
+        class Env(Environ):
+            test_var: str = env_var()
+
+        file_content = dedent(
+            """
+        first line
+        second line
+        """
+        )
+
+        env = Env(name="env")
+        env.test_var = file_content
+
+        assert env.get_env_vars() == {"ENV_TESTVAR": file_content}
+
     def test_nested(self):
         class Env(Environ):
             class Python(EnvGroup):

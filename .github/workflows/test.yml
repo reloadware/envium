@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python_version: [3.6, 3.7, 3.8, 3.9]
+        python_version: ['3.8', '3.9', '3.10', '3.11']
     steps:      
       - uses: actions/checkout@v2
       - name: Set up Python
@@ -24,11 +24,11 @@ jobs:
         id: pip-cache
         with:
           path: ~/.cache/pip
-          key: pip-cache-21.0.1-1.1.7-1.0.5
+          key: pip-cache-23.1.2-1.5.1-1.2.9
           restore-keys: pip-cache-
-      - run: pip install pip==21.0.1
-      - run: pip install poetry==1.1.7
-      - run: pip install envo==1.0.5
+      - run: pip install pip==23.1.2
+      - run: pip install poetry==1.5.1
+      - run: pip install envo==1.2.9
       - uses: gerbal/always-cache@v1.0.3
         id: root-venv-cache
         with:
@@ -55,11 +55,11 @@ jobs:
         id: pip-cache
         with:
           path: ~/.cache/pip
-          key: pip-cache-21.0.1-1.1.7-1.0.5
+          key: pip-cache-23.1.2-1.5.1-1.2.9
           restore-keys: pip-cache-
-      - run: pip install pip==21.0.1
-      - run: pip install poetry==1.1.7
-      - run: pip install envo==1.0.5
+      - run: pip install pip==23.1.2
+      - run: pip install poetry==1.5.1
+      - run: pip install envo==1.2.9
       - uses: gerbal/always-cache@v1.0.3
         id: root-venv-cache
         with:
@@ -74,29 +74,12 @@ jobs:
       - name: Mypy
         run: envo ci run p.mypy
 
-  check-black:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - name: Set up Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: 3.9
-      - uses: gerbal/always-cache@v1.0.3
-        id: check-black-pip-cache
-        with:
-          path: ~/.cache/pip
-          key: check-black-pip-cache-21.6b0
-          restore-keys: check-black-pip-cache-
-      - run: pip install black==21.6b0
-      - run: black --check .
-
   publish:
     env:
       PYPI_USERNAME: ${{ secrets.PYPI_USERNAME }}
       PYPI_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
     runs-on: ubuntu-latest
-    needs: [test, check-black, mypy]
+    needs: [test, mypy]
     if: github.ref == 'refs/heads/master'
     steps:      
       - uses: actions/checkout@v2
@@ -108,11 +91,11 @@ jobs:
         id: pip-cache
         with:
           path: ~/.cache/pip
-          key: pip-cache-21.0.1-1.1.7-1.0.5
+          key: pip-cache-23.1.2-1.5.1-1.2.9
           restore-keys: pip-cache-
-      - run: pip install pip==21.0.1
-      - run: pip install poetry==1.1.7
-      - run: pip install envo==1.0.5
+      - run: pip install pip==23.1.2
+      - run: pip install poetry==1.5.1
+      - run: pip install envo==1.2.9
       - uses: gerbal/always-cache@v1.0.3
         id: root-venv-cache
         with:

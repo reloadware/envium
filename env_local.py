@@ -89,7 +89,7 @@ class EnviumLocalEnv(ParentEnv):
 
         ctx = {
             "black_ver": self.black_ver,
-            "python_versions": [3.6, 3.7, 3.8, 3.9],
+            "python_versions": self.supported_versions,
             "bootstrap_code": bootstrap_code,
         }
 

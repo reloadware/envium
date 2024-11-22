@@ -10,15 +10,9 @@ envo.add_source_roots([root])
 import os
 from typing import Any, Dict, List, Optional, Tuple
 
-from envo import Namespace, VirtualEnv, run
+from envo import VirtualEnv, run, command
 
 from env_comm import EnviumCommEnv as ParentEnv
-
-# Declare your command namespaces here
-# like this:
-# my_namespace = Namespace("my_namespace")
-
-p = Namespace("p")
 
 
 class EnviumLocalEnv(ParentEnv):
@@ -39,8 +33,8 @@ class EnviumLocalEnv(ParentEnv):
         self.ci_template = self.meta.root / ".github/workflows/test.yml.templ"
         self.ci_out = self.meta.root / ".github/workflows/test.yml"
 
-    @p.command
-    def render_ci(self) -> None:
+    @command
+    def p__render_ci(self) -> None:
         from jinja2 import StrictUndefined, Template
 
         bootstrap_code = dedent(
@@ -96,8 +90,8 @@ class EnviumLocalEnv(ParentEnv):
         templ = Template(self.ci_template.read_text(), undefined=StrictUndefined)
         self.ci_out.write_text(templ.render(**ctx))
 
-    @p.command
-    def bootstrap(self) -> None:
+    @command
+    def p__bootstrap(self) -> None:
         run("rm .venv -rf")
         path_before = os.environ["PATH"]
         os.environ[
@@ -105,7 +99,7 @@ class EnviumLocalEnv(ParentEnv):
         ] = f"/home/kwazar/.pyenv/versions/{self.python_ver}/bin/:{os.environ['PATH']}"
         run(f"python -m venv .venv")
         os.environ["PATH"] = f"{self.python_ver}/bin/:{os.environ['PATH']}"
-        super().bootstrap()
+        super().p__bootstrap()
 
         os.environ["PATH"] = path_before
 

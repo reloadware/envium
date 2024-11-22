@@ -24,11 +24,11 @@ jobs:
         id: pip-cache
         with:
           path: ~/.cache/pip
-          key: pip-cache-23.1.2-1.5.1-1.2.9
+          key: pip-cache-23.1.2-1.5.1-1.5.2
           restore-keys: pip-cache-
       - run: pip install pip==23.1.2
       - run: pip install poetry==1.5.1
-      - run: pip install envo==1.2.9
+      - run: pip install envo==1.5.2
       - uses: gerbal/always-cache@v1.0.3
         id: root-venv-cache
         with:
@@ -55,11 +55,11 @@ jobs:
         id: pip-cache
         with:
           path: ~/.cache/pip
-          key: pip-cache-23.1.2-1.5.1-1.2.9
+          key: pip-cache-23.1.2-1.5.1-1.5.2
           restore-keys: pip-cache-
       - run: pip install pip==23.1.2
       - run: pip install poetry==1.5.1
-      - run: pip install envo==1.2.9
+      - run: pip install envo==1.5.2
       - uses: gerbal/always-cache@v1.0.3
         id: root-venv-cache
         with:
@@ -91,11 +91,11 @@ jobs:
         id: pip-cache
         with:
           path: ~/.cache/pip
-          key: pip-cache-23.1.2-1.5.1-1.2.9
+          key: pip-cache-23.1.2-1.5.1-1.5.2
           restore-keys: pip-cache-
       - run: pip install pip==23.1.2
       - run: pip install poetry==1.5.1
-      - run: pip install envo==1.2.9
+      - run: pip install envo==1.5.2
       - uses: gerbal/always-cache@v1.0.3
         id: root-venv-cache
         with:

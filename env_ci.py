@@ -9,14 +9,9 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 import envo
-from envo import Namespace, run
+from envo import run, command
 
 from env_comm import EnviumCommEnv as ParentEnv
-
-# Declare your command namespaces here
-# like this:
-p = Namespace("p")
-
 
 class EnviumCiEnv(ParentEnv):
     class Meta(ParentEnv.Meta):
@@ -38,45 +33,45 @@ class EnviumCiEnv(ParentEnv):
         self.ci_config_templ = self.meta.root / "config.yml.templ"
         self.config = self.meta.root / ".circleci/config.yml"
 
-    @p.command
-    def bootstrap(self) -> None:
+    @command
+    def p__bootstrap(self) -> None:
         run("mkdir -p workspace")
-        super().bootstrap()
+        super().p__bootstrap()
 
-    @p.command
-    def test(self) -> None:
+    @command
+    def p__test(self) -> None:
         run(
             "pytest -v --cov-report html --cov=envium tests --junitxml=test-results/junit.xml"
         )
 
-    @p.command
-    def build(self) -> None:
+    @command
+    def p__build(self) -> None:
         run("poetry build")
 
-    @p.command
-    def publish(self) -> None:
+    @command
+    def p__publish(self) -> None:
         run("poetry publish --username $PYPI_USERNAME --password $PYPI_PASSWORD")
 
-    @p.command
-    def rstcheck(self) -> None:
+    @command
+    def p__rstcheck(self) -> None:
         pass
         # run("rstcheck README.rst | tee ./workspace/rstcheck.txt")
 
-    @p.command
-    def flake(self) -> None:
+    @command
+    def p__flake(self) -> None:
         pass
         # run("flake8 . | tee ./workspace/flake8.txt")
 
-    @p.command
-    def check_black(self) -> None:
+    @command
+    def p__check_black(self) -> None:
         run("black --check . | tee ./workspace/black.txt")
 
-    @p.command
-    def mypy(self) -> None:
+    @command
+    def p__mypy(self) -> None:
         run("mypy . | tee ./workspace/mypy.txt")
 
-    @p.command
-    def render(self) -> None:
+    @command
+    def p__render(self) -> None:
         from jinja2 import StrictUndefined, Template
 
         ctx = {
@@ -87,8 +82,8 @@ class EnviumCiEnv(ParentEnv):
         templ = Template(self.ci_config_templ.read_text(), undefined=StrictUndefined)
         self.config.write_text(templ.render(**ctx))
 
-    @p.command
-    def generate_version(self) -> None:
+    @command
+    def p__generate_version(self) -> None:
         import toml
 
         config = toml.load(str(self.meta.root / "pyproject.toml"))

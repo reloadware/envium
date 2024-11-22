@@ -28,9 +28,20 @@ class TestMisc:
         with raises(facade.EnviumError):
             env = Env(name="")
 
-    def test_name_override(self):
+    def test_raw(self):
         class Env(Environ):
-            test_var: str = env_var(name_override="MY_VAR")
+            test_var: str = env_var(raw=True)
+
+        env = Env(name="env")
+
+        env.test_var = "Cake"
+
+        assert env.test_var == "Cake"
+        assert env.get_env_vars() == {"TEST_VAR": "Cake"}
+    
+    def test_raw_str(self):
+        class Env(Environ):
+            test_var: str = env_var(raw="MY_VAR")
 
         env = Env(name="env")
 
@@ -116,10 +127,10 @@ class TestMisc:
     def test_raw_in_nested(self):
         class Env(Environ):
             class Python(EnvGroup):
-                version: str = env_var(name_override="VERSION")
+                version: str = env_var(raw=True)
                 name: str = env_var()
 
-            test_var: str = env_var(name_override="TEST_VAR")
+            test_var: str = env_var(raw=True)
             python = Python()
 
         env = Env(name="env")
@@ -174,7 +185,7 @@ class TestMisc:
                 version: str = env_var()
                 name: str = env_var()
 
-            python = Python(name_override="PYTHON")
+            python = Python(raw=True)
 
         env = Env(name="env")
         env.python.version = "3.8.2"
@@ -195,7 +206,7 @@ class TestMisc:
                     minor: str = env_var()
                     major: str = env_var()
 
-                version = Version(name_override="VERSION")
+                version = Version(raw=True)
                 name: str = env_var()
 
             python = Python()
@@ -338,7 +349,7 @@ class TestLoading:
                 version = Version()
                 name: str = env_var(default="Python")
 
-            test_var: str = env_var(name_override="TEST_VAR", default="test_var")
+            test_var: str = env_var("test_var", raw=True)
             python = Python()
 
         os.environ["ENV_PYTHON_VERSION_MINOR"] = "8"

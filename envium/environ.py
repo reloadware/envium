@@ -14,17 +14,18 @@ __all__ = ["env_var", "Environ", "computed_env_var", "EnvGroup"]
 
 
 class EnvVar(Var):
-    _name_override: Optional[str] = None
+    raw: Union[bool, str]
     _parent: "EnvGroup"
 
     def __init__(
         self,
         default: Optional[Any] = None,
+        *,
         default_factory: Optional[Callable] = None,
-        name_override: Optional[str] = None,
+        raw: Union[bool, str] = False,
     ) -> None:
         super().__init__(default=default, default_factory=default_factory)
-        self._name_override = name_override
+        self._raw = raw
 
     def _init_value(self) -> None:
         if self._parent._load:
@@ -36,14 +37,16 @@ class EnvVar(Var):
             self._value = self._default
 
     def _get_env_name(self) -> str:
-        if self._name_override:
-            ret = self._name_override
+        if self._raw:
+            if self._raw is True:
+                ret = self._name
+            else:
+                ret = self._raw
         else:
             ret = self._fullname
             ret = ret.replace("_", "").replace(".", "_").replace("-", "")
 
         ret = ret.upper()
-
         return ret
 
 
@@ -52,29 +55,32 @@ class ComputedEnvVar(ComputedMixin, EnvVar):
         self,
         fget: Optional[Callable] = None,
         fset: Optional[Callable] = None,
-        name_override: Optional[str] = None,
+        *,
+        raw: Union[bool, str] = None,
     ) -> None:
         ComputedMixin.__init__(self, fget=fget, fset=fset)
-        EnvVar.__init__(self, name_override=name_override)
-
+        EnvVar.__init__(self, raw=raw)
     pass
 
 
 class EnvGroup(VarGroup[EnvVar]):
-    _name_override: Optional[str] = None
+    raw: Union[bool, str]
     _load: bool
 
     def __init__(
-        self, name: Optional[str] = None, name_override: Optional[str] = None, load: bool = True
+        self, name: Optional[str] = None, *, raw: Union[bool, str] = False, load: bool = True
     ) -> None:
         super().__init__(name=name)
         self._load = load
-        self._name_override = name_override
+        self._raw = raw
 
     @property
     def _fullname(self) -> str:
-        if self._name_override:
-            return self._name_override
+        if self._raw:
+            if self._raw is True:
+                return self._name
+            else:
+                return self._raw
 
         ret = super()._fullname
         return ret
@@ -94,11 +100,11 @@ class EnvGroup(VarGroup[EnvVar]):
 
 
 class Environ(EnvGroup):
-    def __init__(self, name: str, load: bool = False):
+    def __init__(self, name: str, raw: Union[bool, str] = False, load: bool = False):
         if not name:
             raise EnviumError("Root needs to have a name")
 
-        super().__init__(name=name, load=load)
+        super().__init__(name=name, load=load, raw=raw)
         self._root = self
         self._process()
 
@@ -159,18 +165,18 @@ class Environ(EnvGroup):
 
 def env_var(
     default: Optional[Any] = None,
-    name_override: Optional[str] = None,
-    default_factory: Optional[Callable] = None,
+    raw: Union[bool, str] = False,
+    default_factory: Optional[Callable] = None
 ) -> Any:
-    return EnvVar(default=default, name_override=name_override, default_factory=default_factory)
+    return EnvVar(default=default, raw=raw, default_factory=default_factory)
 
 
 def computed_env_var(
     fget: Optional[Callable] = None,
     fset: Optional[Callable] = None,
-    name_override: Optional[str] = None,
+    raw: Union[bool, str] = False
 ) -> Any:
-    return ComputedEnvVar(fget, fset, name_override)
+    return ComputedEnvVar(fget, fset, raw=raw)
 
 
 Group = VarGroup

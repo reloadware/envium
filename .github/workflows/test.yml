@@ -29,6 +29,7 @@ jobs:
       - run: pip install pip==23.1.2
       - run: pip install poetry==1.5.1
       - run: pip install envo==1.5.2
+      - run: pip install envium==1.0.2
       - uses: gerbal/always-cache@v1.0.3
         id: root-venv-cache
         with:
@@ -60,6 +61,7 @@ jobs:
       - run: pip install pip==23.1.2
       - run: pip install poetry==1.5.1
       - run: pip install envo==1.5.2
+      - run: pip install envium==1.0.2
       - uses: gerbal/always-cache@v1.0.3
         id: root-venv-cache
         with:
@@ -96,6 +98,7 @@ jobs:
       - run: pip install pip==23.1.2
       - run: pip install poetry==1.5.1
       - run: pip install envo==1.5.2
+      - run: pip install envium==1.0.2
       - uses: gerbal/always-cache@v1.0.3
         id: root-venv-cache
         with:
